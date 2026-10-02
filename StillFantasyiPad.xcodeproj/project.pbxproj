@@ -1,0 +1,347 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1CAEC16E0904D20F6EB89AE1 /* StillFantasyiPadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */; };
+		AEA8ADEE81A6F937CC613FF1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A4F5E85C441911E2A7E6189 /* Category.swift */; };
+		01E674D2526EA99BC4ACDF1C /* MicroSpecimen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */; };
+		EE3B06F5F33DEBC75C2EF27F /* Species.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDFB04B38A2AFB705F7666B /* Species.swift */; };
+		02671BE954167D4EA207409D /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0590F59488151DA8643427B7 /* UserProfile.swift */; };
+		75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4D96791B1688A70F46887C /* ThemeColors.swift */; };
+		B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */; };
+		5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0790691964E91FB0C7AA1C5 /* CodexView.swift */; };
+		85D417E24819D6FF7AA3032E /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39114084529C60F6ADD65DD /* DashboardView.swift */; };
+		1CD7C5E96F273C2F9D74DAEA /* MainLayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CB96E4477DE456B36002B2 /* MainLayoutView.swift */; };
+		46B9E18556A6CC0D52968BDF /* MembershipCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */; };
+		EFED70BE6C4B62154E562693 /* MicroWorldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */; };
+		3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B74927EE3E4223017A75AB /* ProfileView.swift */; };
+		808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */; };
+		D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */; };
+		1E9477E2D08F03CF91B57FBC /* PayQRModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E813BDD203A8E382FCF98F /* PayQRModalView.swift */; };
+		07EBD3D3178D636434282CB2 /* SpecimenImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */; };
+		E9C829744EAE864117000A73 /* TopHeaderBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D5FD104138997B7A4794AD /* TopHeaderBar.swift */; };
+		D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F2918F642BF619DA24F14F /* AudioService.swift */; };
+		8E64AE1ED6ED7F0815460900 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = C579B4363699B268407E6A07 /* Resources */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/StillFantasyiPadApp.swift"; sourceTree = "<group>"; };
+		5A4F5E85C441911E2A7E6189 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/Category.swift"; sourceTree = "<group>"; };
+		36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/MicroSpecimen.swift"; sourceTree = "<group>"; };
+		FBDFB04B38A2AFB705F7666B /* Species.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/Species.swift"; sourceTree = "<group>"; };
+		0590F59488151DA8643427B7 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/UserProfile.swift"; sourceTree = "<group>"; };
+		CF4D96791B1688A70F46887C /* ThemeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Theme/ThemeColors.swift"; sourceTree = "<group>"; };
+		863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/AnatomyStageView.swift"; sourceTree = "<group>"; };
+		E0790691964E91FB0C7AA1C5 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/CodexView.swift"; sourceTree = "<group>"; };
+		E39114084529C60F6ADD65DD /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/DashboardView.swift"; sourceTree = "<group>"; };
+		02CB96E4477DE456B36002B2 /* MainLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/MainLayoutView.swift"; sourceTree = "<group>"; };
+		DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/MembershipCenterView.swift"; sourceTree = "<group>"; };
+		084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/MicroWorldView.swift"; sourceTree = "<group>"; };
+		44B74927EE3E4223017A75AB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/ProfileView.swift"; sourceTree = "<group>"; };
+		7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/SpeciesDetailView.swift"; sourceTree = "<group>"; };
+		B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/UnlockCelebrationView.swift"; sourceTree = "<group>"; };
+		11E813BDD203A8E382FCF98F /* PayQRModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/PayQRModalView.swift"; sourceTree = "<group>"; };
+		ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/SpecimenImageView.swift"; sourceTree = "<group>"; };
+		40D5FD104138997B7A4794AD /* TopHeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/TopHeaderBar.swift"; sourceTree = "<group>"; };
+		B3F2918F642BF619DA24F14F /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Services/AudioService.swift"; sourceTree = "<group>"; };
+		C579B4363699B268407E6A07 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "Resources"; sourceTree = "<group>"; };
+		73AD16181FDDB7427288C6BD /* StillFantasyiPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StillFantasyiPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2E736DC4E22966F765AB4C91 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A85897F1A32FE9B91C081CD = {
+			isa = PBXGroup;
+			children = (
+				E9AC4BD1540DF25F92F842D2 /* Sources */,
+				C579B4363699B268407E6A07 /* Resources */,
+				B88D7E26791946AEFDCC8BB7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B88D7E26791946AEFDCC8BB7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				73AD16181FDDB7427288C6BD /* StillFantasyiPad.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9AC4BD1540DF25F92F842D2 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */,
+				5A4F5E85C441911E2A7E6189 /* Category.swift */,
+				36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */,
+				FBDFB04B38A2AFB705F7666B /* Species.swift */,
+				0590F59488151DA8643427B7 /* UserProfile.swift */,
+				CF4D96791B1688A70F46887C /* ThemeColors.swift */,
+				863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */,
+				E0790691964E91FB0C7AA1C5 /* CodexView.swift */,
+				E39114084529C60F6ADD65DD /* DashboardView.swift */,
+				02CB96E4477DE456B36002B2 /* MainLayoutView.swift */,
+				DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */,
+				084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */,
+				44B74927EE3E4223017A75AB /* ProfileView.swift */,
+				7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */,
+				B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */,
+				11E813BDD203A8E382FCF98F /* PayQRModalView.swift */,
+				ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */,
+				40D5FD104138997B7A4794AD /* TopHeaderBar.swift */,
+				B3F2918F642BF619DA24F14F /* AudioService.swift */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BC7AF4FC960D091A4063CA13 /* StillFantasyiPad */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BD8AF6241EA4D2BCB89A821 /* Build configuration list for PBXNativeTarget "StillFantasyiPad" */;
+			buildPhases = (
+				8BB8ABC24AB723F99D4DD920 /* Sources */,
+				2E736DC4E22966F765AB4C91 /* Frameworks */,
+				01CC597ABAD15DB9D2376BE0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = StillFantasyiPad;
+			productName = StillFantasyiPad;
+			productReference = 73AD16181FDDB7427288C6BD /* StillFantasyiPad.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6A714FD6B079E972445851C7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					BC7AF4FC960D091A4063CA13 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 312AEC4A30A709044C1B251A /* Build configuration list for PBXProject "StillFantasyiPad" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0A85897F1A32FE9B91C081CD;
+			productRefGroup = B88D7E26791946AEFDCC8BB7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BC7AF4FC960D091A4063CA13 /* StillFantasyiPad */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		01CC597ABAD15DB9D2376BE0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E64AE1ED6ED7F0815460900 /* Resources in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8BB8ABC24AB723F99D4DD920 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1CAEC16E0904D20F6EB89AE1 /* StillFantasyiPadApp.swift in Sources */,
+				AEA8ADEE81A6F937CC613FF1 /* Category.swift in Sources */,
+				01E674D2526EA99BC4ACDF1C /* MicroSpecimen.swift in Sources */,
+				EE3B06F5F33DEBC75C2EF27F /* Species.swift in Sources */,
+				02671BE954167D4EA207409D /* UserProfile.swift in Sources */,
+				75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */,
+				B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */,
+				5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */,
+				85D417E24819D6FF7AA3032E /* DashboardView.swift in Sources */,
+				1CD7C5E96F273C2F9D74DAEA /* MainLayoutView.swift in Sources */,
+				46B9E18556A6CC0D52968BDF /* MembershipCenterView.swift in Sources */,
+				EFED70BE6C4B62154E562693 /* MicroWorldView.swift in Sources */,
+				3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */,
+				808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */,
+				D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */,
+				1E9477E2D08F03CF91B57FBC /* PayQRModalView.swift in Sources */,
+				07EBD3D3178D636434282CB2 /* SpecimenImageView.swift in Sources */,
+				E9C829744EAE864117000A73 /* TopHeaderBar.swift in Sources */,
+				D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B21FEA8B361C5074C004CF32 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		8E292DFB9EE8E9971CDBFCB8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		BF4B2DC1233899DE8D2EC672 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stillfantasy.ipad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9CE39D1FA58E3422FA9594AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stillfantasy.ipad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		312AEC4A30A709044C1B251A /* Build configuration list for PBXProject "StillFantasyiPad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B21FEA8B361C5074C004CF32 /* Debug */,
+				8E292DFB9EE8E9971CDBFCB8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BD8AF6241EA4D2BCB89A821 /* Build configuration list for PBXNativeTarget "StillFantasyiPad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF4B2DC1233899DE8D2EC672 /* Debug */,
+				9CE39D1FA58E3422FA9594AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = 6A714FD6B079E972445851C7 /* Project object */;
+}
