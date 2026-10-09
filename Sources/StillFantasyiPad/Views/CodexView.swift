@@ -1,21 +1,21 @@
 import SwiftUI
 
 public struct CodexView: View {
+    @EnvironmentObject private var appState: AppState
     @Binding var activeTab: String
     @Binding var selectedSpeciesId: String
-    let onTriggerUnlockModal: () -> Void
+    let onUnlockSpecies: (String) -> Void
 
     @State private var selectedFilter: String = "all"
-    @State private var searchText: String = ""
 
     public init(
         activeTab: Binding<String>,
         selectedSpeciesId: Binding<String>,
-        onTriggerUnlockModal: @escaping () -> Void
+        onUnlockSpecies: @escaping (String) -> Void
     ) {
         self._activeTab = activeTab
         self._selectedSpeciesId = selectedSpeciesId
-        self.onTriggerUnlockModal = onTriggerUnlockModal
+        self.onUnlockSpecies = onUnlockSpecies
     }
 
     private var allSpecies: [Species] {
@@ -25,9 +25,13 @@ public struct CodexView: View {
     private var filteredSpecies: [Species] {
         allSpecies.filter { sp in
             if selectedFilter == "all" { return true }
-            if selectedFilter == "unlocked" { return sp.isUnlocked }
+            if selectedFilter == "unlocked" { return appState.isUnlocked(sp.id) }
             return sp.categoryId == selectedFilter
         }
+    }
+
+    private func count(in categoryId: String) -> Int {
+        appState.speciesCount(inCategory: categoryId)
     }
 
     public var body: some View {
@@ -50,11 +54,11 @@ public struct CodexView: View {
                     // Codex Progress Card
                     VStack(alignment: .trailing, spacing: 6) {
                         HStack(spacing: 8) {
-                            Text("已收录 32 / 120 种")
+                            Text("已收录 \(appState.unlockedCount) / \(appState.totalSpeciesCount) 种")
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(Color.textLight)
 
-                            Text("27%")
+                            Text(appState.explorationPercentText)
                                 .font(.system(size: 13, weight: .black))
                                 .foregroundColor(Color.biolumMint)
                         }
@@ -74,7 +78,7 @@ public struct CodexView: View {
                                             endPoint: .trailing
                                         )
                                     )
-                                    .frame(width: barGeo.size.width * 0.27, height: 8)
+                                    .frame(width: barGeo.size.width * CGFloat(appState.explorationProgress), height: 8)
                             }
                         }
                         .frame(width: 180, height: 8)
@@ -90,18 +94,18 @@ public struct CodexView: View {
 
                 // MARK: - Filter Pills
                 HStack(spacing: 10) {
-                    FilterPill(title: "全部 (120)", filterKey: "all", currentFilter: $selectedFilter)
-                    FilterPill(title: "昆虫王国 (48)", filterKey: "insects", currentFilter: $selectedFilter)
-                    FilterPill(title: "陆地探险 (32)", filterKey: "land", currentFilter: $selectedFilter)
-                    FilterPill(title: "深海奇境 (24)", filterKey: "ocean", currentFilter: $selectedFilter)
-                    FilterPill(title: "鸟类天地 (16)", filterKey: "birds", currentFilter: $selectedFilter)
-                    FilterPill(title: "已解锁 (32)", filterKey: "unlocked", currentFilter: $selectedFilter)
+                    FilterPill(title: "全部 (\(appState.totalSpeciesCount))", filterKey: "all", currentFilter: $selectedFilter)
+                    FilterPill(title: "昆虫王国 (\(count(in: "insects")))", filterKey: "insects", currentFilter: $selectedFilter)
+                    FilterPill(title: "陆地探险 (\(count(in: "land")))", filterKey: "land", currentFilter: $selectedFilter)
+                    FilterPill(title: "深海奇境 (\(count(in: "ocean")))", filterKey: "ocean", currentFilter: $selectedFilter)
+                    FilterPill(title: "鸟类天地 (\(count(in: "birds")))", filterKey: "birds", currentFilter: $selectedFilter)
+                    FilterPill(title: "已解锁 (\(appState.unlockedCount))", filterKey: "unlocked", currentFilter: $selectedFilter)
                 }
 
                 // MARK: - Species Bento Grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     ForEach(filteredSpecies) { sp in
-                        if sp.isUnlocked {
+                        if appState.isUnlocked(sp.id) {
                             // Unlocked Species Card
                             Button(action: {
                                 selectedSpeciesId = sp.id
@@ -170,7 +174,7 @@ public struct CodexView: View {
                         } else {
                             // Locked Species Card
                             Button(action: {
-                                onTriggerUnlockModal()
+                                onUnlockSpecies(sp.id)
                             }) {
                                 VStack(alignment: .leading, spacing: 10) {
                                     ZStack {

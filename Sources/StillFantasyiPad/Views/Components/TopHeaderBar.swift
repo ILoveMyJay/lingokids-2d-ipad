@@ -19,9 +19,19 @@ public struct TopHeaderBar: View {
                     .foregroundColor(Color.textMuted.opacity(0.6))
                     .font(.system(size: 14))
 
-                TextField("搜索植物、动物、微观世界...", text: $searchText)
+                TextField("搜索物种名称、英文名或学名...", text: $searchText)
                     .font(.system(size: 13, weight: .regular))
                     .foregroundColor(Color.textLight)
+                    .autocorrectionDisabled()
+
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color.textMuted.opacity(0.7))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
@@ -34,35 +44,6 @@ public struct TopHeaderBar: View {
             .frame(maxWidth: 360)
 
             Spacer()
-
-            // AR Scan Button
-            Button(action: {}) {
-                Image(systemName: "viewfinder")
-                    .foregroundColor(Color.textMuted)
-                    .font(.system(size: 15))
-                    .frame(width: 36, height: 36)
-                    .background(Color.darkEmeraldCard)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.darkEmeraldBorder, lineWidth: 1))
-            }
-
-            // Notification Bell with Ping
-            Button(action: {}) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "bell")
-                        .foregroundColor(Color.textMuted)
-                        .font(.system(size: 15))
-                        .frame(width: 36, height: 36)
-                        .background(Color.darkEmeraldCard)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.darkEmeraldBorder, lineWidth: 1))
-
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 8, height: 8)
-                        .offset(x: -2, y: 4)
-                }
-            }
 
             // User Profile Trigger Button
             Button(action: onOpenProfile) {
@@ -96,5 +77,81 @@ public struct TopHeaderBar: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 12)
         .background(Color.darkEmeraldBg.opacity(0.85))
+    }
+}
+
+
+/// Dropdown shown under the header while the search field is non-empty.
+public struct SearchResultsView: View {
+    let query: String
+    let isUnlocked: (String) -> Bool
+    let onSelect: (Species) -> Void
+
+    private var results: [Species] {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !q.isEmpty else { return [] }
+        return SpeciesDataStore.sampleSpecies.filter {
+            $0.nameZh.lowercased().contains(q)
+                || $0.nameEn.lowercased().contains(q)
+                || $0.scientificName.lowercased().contains(q)
+                || $0.orderZh.contains(q)
+        }
+    }
+
+    public var body: some View {
+        let items = results
+        VStack(alignment: .leading, spacing: 0) {
+            if items.isEmpty {
+                Text("没有找到相关物种")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color.textMuted)
+                    .padding(16)
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(items.prefix(8)) { sp in
+                            Button(action: { onSelect(sp) }) {
+                                HStack(spacing: 12) {
+                                    SpecimenImageView(sp.coverImage)
+                                        .frame(width: 36, height: 36)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(sp.nameZh)
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(Color.textLight)
+                                        Text("\(sp.nameEn) · \(sp.scientificName)")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(Color.textMuted)
+                                            .lineLimit(1)
+                                    }
+
+                                    Spacer()
+
+                                    if !isUnlocked(sp.id) {
+                                        Image(systemName: "lock.fill")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(Color.amberGold)
+                                    }
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                }
+                .frame(maxHeight: 380)
+            }
+        }
+        .frame(width: 360)
+        .background(Color.darkEmeraldCard)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.darkEmeraldBorder, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.4), radius: 16, y: 6)
     }
 }

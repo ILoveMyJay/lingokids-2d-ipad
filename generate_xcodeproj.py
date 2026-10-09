@@ -6,7 +6,7 @@ import json
 def gen_id(name: str) -> str:
     return hashlib.md5(name.encode('utf-8')).hexdigest()[:24].upper()
 
-project_dir = "/Users/alan/Documents/AI/ipad/StillFantasyiPad"
+project_dir = os.path.dirname(os.path.abspath(__file__))
 sources_dir = os.path.join(project_dir, "Sources/StillFantasyiPad")
 
 # Find all swift files

@@ -1,13 +1,14 @@
 import SwiftUI
 
 public struct MembershipCenterView: View {
-    let userProfile: UserProfile
+    @EnvironmentObject private var appState: AppState
     let onOpenPayModal: () -> Void
 
-    public init(userProfile: UserProfile, onOpenPayModal: @escaping () -> Void) {
-        self.userProfile = userProfile
+    public init(onOpenPayModal: @escaping () -> Void) {
         self.onOpenPayModal = onOpenPayModal
     }
+
+    private var userProfile: UserProfile { appState.userProfile }
 
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -57,7 +58,7 @@ public struct MembershipCenterView: View {
                                 .clipShape(Capsule())
                             }
 
-                            Text("见习学者 · 探索经验 3,000 / 5,000 XP (连续打卡 \(userProfile.consecutiveDays) 天)")
+                            Text("\(userProfile.title) · 探索经验 \(userProfile.xpProgressText) (连续打卡 \(userProfile.consecutiveDays) 天)")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color.textMuted)
                         }
@@ -154,7 +155,7 @@ public struct MembershipCenterView: View {
 
                         // 4 Privileges Bento
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                            PrivilegeCard(icon: "cube.transparent", title: "3D 全景解剖", desc: "23+ 种生物多层肌理与仿生结构无死角旋转")
+                            PrivilegeCard(icon: "cube.transparent", title: "3D 全景解剖", desc: "\(SpeciesDataStore.sampleSpecies.count) 种生物多层肌理与仿生结构无死角旋转")
                             PrivilegeCard(icon: "waveform.badge.magnifyingglass", title: "1,600+ 原声音频", desc: "高保真雨林生境原声与多语种双语导览讲解")
                             PrivilegeCard(icon: "scope", title: "800× 纳米显微", desc: "电子显微镜级别光子晶体与超疏水表面探秘")
                             PrivilegeCard(icon: "arrow.down.circle.fill", title: "离线全量数据", desc: "支持 361MB 媒体资源离线高速读取，无网畅玩")

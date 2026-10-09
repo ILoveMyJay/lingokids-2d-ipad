@@ -3,8 +3,8 @@ import SwiftUI
 public struct SpeciesDetailView: View {
     @Binding var selectedSpeciesId: String
     @Binding var activeTab: String
+    @EnvironmentObject private var appState: AppState
     @State private var selectedSubTab: Int = 0
-    @State private var isFavorite: Bool = true
     @ObservedObject private var audioService = AudioService.shared
 
     public init(selectedSpeciesId: Binding<String>, activeTab: Binding<String>) {
@@ -16,9 +16,37 @@ public struct SpeciesDetailView: View {
         SpeciesDataStore.getSpecies(by: selectedSpeciesId)
     }
 
+    private var zhToken: String { "species-zh-\(selectedSpeciesId)" }
+    private var enToken: String { "species-en-\(selectedSpeciesId)" }
+
     // List of quick-switch animals
     private var quickSwitchSpecies: [Species] {
         SpeciesDataStore.sampleSpecies
+    }
+
+    private var bentoGrid: some View {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("\(currentSpecies.nameZh) · 生物学核心特征")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(Color.textLight)
+                    Spacer()
+                    Text("已收录 \(currentSpecies.bodyParts.count) 个解剖部位")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color.biolumMint)
+                }
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                    BentoCard(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
+                    BentoCard(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期")
+                    BentoCard(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源")
+                    BentoCard(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
+                    BentoCard(icon: "sparkles", title: "学名归属", value: currentSpecies.scientificName, desc: "国际动植物命名法典分类")
+                    BentoCard(icon: "shield.checkerboard", title: "解剖结构", value: "\(currentSpecies.bodyParts.count) 个核心结构", desc: "可在解剖实验室逐一查看各部位")
+                    BentoCard(icon: "trophy.fill", title: "稀有度评级", value: "★ \(currentSpecies.rarity) 星级物种", desc: "生态价值与濒危参考指标")
+                    BentoCard(icon: "scope", title: "显微模式", value: "支持 400× 显微", desc: "纳米微观纹理与仿生机制")
+                }
+            }
     }
 
     public var body: some View {
@@ -55,7 +83,8 @@ public struct SpeciesDetailView: View {
                     Spacer()
 
                     // Favorite Button
-                    Button(action: { isFavorite.toggle() }) {
+                    Button(action: { appState.toggleFavorite(currentSpecies.id) }) {
+                        let isFavorite = appState.isFavorite(currentSpecies.id)
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.system(size: 16))
                             .foregroundColor(isFavorite ? Color.red : Color.textMuted)
@@ -180,16 +209,16 @@ public struct SpeciesDetailView: View {
                         // Bilingual Audio Button
                         HStack(spacing: 12) {
                             Button(action: {
-                                if audioService.isPlaying {
+                                if audioService.isActive(token: zhToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)")
+                                    audioService.speak(text: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)", token: zhToken)
                                 }
                             }) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: audioService.isPlaying ? "waveform" : "speaker.wave.2.fill")
+                                    Image(systemName: audioService.isActive(token: zhToken) ? "waveform" : "speaker.wave.2.fill")
                                         .font(.system(size: 13))
-                                    Text(audioService.isPlaying ? "正在朗读解说..." : "中文语音导览")
+                                    Text(audioService.isActive(token: zhToken) ? "正在朗读解说..." : "中文语音导览")
                                         .font(.system(size: 12, weight: .bold))
                                 }
                                 .foregroundColor(Color.darkEmeraldBg)
@@ -200,16 +229,16 @@ public struct SpeciesDetailView: View {
                             }
 
                             Button(action: {
-                                if audioService.isPlaying {
+                                if audioService.isActive(token: enToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)", language: "en-US")
+                                    audioService.speak(text: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)", language: "en-US", token: enToken)
                                 }
                             }) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "globe")
+                                    Image(systemName: audioService.isActive(token: enToken) ? "waveform" : "globe")
                                         .font(.system(size: 13))
-                                    Text("English Audio")
+                                    Text(audioService.isActive(token: enToken) ? "Playing..." : "English Audio")
                                         .font(.system(size: 12, weight: .medium))
                                 }
                                 .foregroundColor(Color.textLight)
@@ -233,14 +262,13 @@ public struct SpeciesDetailView: View {
 
                 // MARK: - Sub Tab Bar
                 HStack(spacing: 12) {
-                    let tabs = ["形态解剖与结构", "生活习性与生态", "生命周期与演变", "400× 微观视界"]
+                    let tabs = ["核心特征概览", "生活习性与生态", "生命周期与演变", "400× 微观视界"]
                     ForEach(0..<tabs.count, id: \.self) { idx in
                         Button(action: {
-                            selectedSubTab = idx
-                            if idx == 0 {
-                                activeTab = "anatomy"
-                            } else if idx == 3 {
+                            if idx == 3 {
                                 activeTab = "micro"
+                            } else {
+                                selectedSubTab = idx
                             }
                         }) {
                             Text(tabs[idx])
@@ -258,27 +286,29 @@ public struct SpeciesDetailView: View {
                 }
                 .padding(.horizontal, 24)
 
-                // MARK: - Bento Attributes 8-Grid (Dynamically computed from currentSpecies)
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack {
-                        Text("\(currentSpecies.nameZh) · 生物学核心特征")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(Color.textLight)
-                        Spacer()
-                        Text("已收录 \(currentSpecies.bodyParts.count) 个解剖部位")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color.biolumMint)
-                    }
-
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                        BentoCard(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
-                        BentoCard(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期")
-                        BentoCard(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源")
-                        BentoCard(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
-                        BentoCard(icon: "sparkles", title: "学名归属", value: currentSpecies.scientificName, desc: "国际动植物命名法典分类")
-                        BentoCard(icon: "shield.checkerboard", title: "解剖结构", value: "\(currentSpecies.bodyParts.count) 个核心结构", desc: "可进行 3D 深度热点探索")
-                        BentoCard(icon: "trophy.fill", title: "稀有度评级", value: "★ \(currentSpecies.rarity) 星级物种", desc: "生态价值与濒危参考指标")
-                        BentoCard(icon: "scope", title: "显微模式", value: "支持 400× 显微", desc: "纳米微观纹理与仿生机制")
+                // MARK: - Sub-tab content
+                Group {
+                    switch selectedSubTab {
+                    case 1:
+                        SubInfoPanel(
+                            title: "\(currentSpecies.nameZh) · 生活习性与生态",
+                            cards: [
+                                ("leaf.fill", "主要食性", currentSpecies.food, "摄食类型与能量来源"),
+                                ("map.fill", "原生栖息地", currentSpecies.habitat, "自然地理分布与群落")
+                            ],
+                            summary: currentSpecies.overviewZh
+                        )
+                    case 2:
+                        SubInfoPanel(
+                            title: "\(currentSpecies.nameZh) · 生命周期与体型",
+                            cards: [
+                                ("hourglass", "预期寿命", currentSpecies.lifespan, "自然生境下的存活周期"),
+                                ("ruler", "体长 / 展翅", currentSpecies.length, "生物外形尺度测量")
+                            ],
+                            summary: currentSpecies.overviewEn
+                        )
+                    default:
+                        bentoGrid
                     }
                 }
                 .padding(.horizontal, 24)
@@ -327,6 +357,9 @@ public struct SpeciesDetailView: View {
                 .padding(.bottom, 24)
             }
         }
+        .onChange(of: selectedSpeciesId) { _ in
+            selectedSubTab = 0
+        }
     }
 }
 
@@ -351,7 +384,8 @@ private struct BentoCard: View {
             Text(value)
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(Color.textLight)
-                .lineLimit(1)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text(desc)
                 .font(.system(size: 10))
@@ -365,5 +399,38 @@ private struct BentoCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.darkEmeraldBorder, lineWidth: 1)
         )
+    }
+}
+
+private struct SubInfoPanel: View {
+    let title: String
+    let cards: [(icon: String, title: String, value: String, desc: String)]
+    let summary: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(Color.textLight)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                ForEach(0..<cards.count, id: \.self) { idx in
+                    BentoCard(icon: cards[idx].icon, title: cards[idx].title, value: cards[idx].value, desc: cards[idx].desc)
+                }
+            }
+
+            Text(summary)
+                .font(.system(size: 13))
+                .foregroundColor(Color.textMuted)
+                .lineSpacing(5)
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.darkEmeraldCard)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.darkEmeraldBorder, lineWidth: 1)
+                )
+        }
     }
 }

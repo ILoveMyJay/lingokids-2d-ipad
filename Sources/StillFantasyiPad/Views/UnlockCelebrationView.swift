@@ -2,10 +2,12 @@ import SwiftUI
 
 public struct UnlockCelebrationView: View {
     @Binding var isPresented: Bool
+    let species: Species
     let onNavigateToAnatomy: () -> Void
 
-    public init(isPresented: Binding<Bool>, onNavigateToAnatomy: @escaping () -> Void) {
+    public init(isPresented: Binding<Bool>, species: Species, onNavigateToAnatomy: @escaping () -> Void) {
         self._isPresented = isPresented
+        self.species = species
         self.onNavigateToAnatomy = onNavigateToAnatomy
     }
 
@@ -62,7 +64,7 @@ public struct UnlockCelebrationView: View {
 
                 // Specimen Spotlight Card
                 VStack(spacing: 12) {
-                    SpecimenImageView("images/blue-morpho/cover.jpg")
+                    SpecimenImageView(species.coverImage)
                         .frame(width: 240, height: 160)
                         .clipped()
                         .cornerRadius(18)
@@ -81,12 +83,12 @@ public struct UnlockCelebrationView: View {
 
                     VStack(spacing: 4) {
                         HStack(spacing: 6) {
-                            Text("大蓝闪蝶")
+                            Text(species.nameZh)
                                 .font(.system(size: 22, weight: .black))
                                 .foregroundColor(Color.textLight)
 
                             HStack(spacing: 2) {
-                                ForEach(0..<5) { _ in
+                                ForEach(0..<species.rarity, id: \.self) { _ in
                                     Image(systemName: "star.fill")
                                         .font(.system(size: 10))
                                         .foregroundColor(Color.amberGold)
@@ -94,7 +96,7 @@ public struct UnlockCelebrationView: View {
                             }
                         }
 
-                        Text("Morpho menelaus · 鳞翅目 · 闪蝶科")
+                        Text("\(species.scientificName) · \(species.orderZh) · \(species.familyZh)")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(Color.biolumMint)
                     }
@@ -102,9 +104,9 @@ public struct UnlockCelebrationView: View {
 
                 // Rewards Row
                 HStack(spacing: 16) {
-                    RewardBadge(icon: "bolt.fill", title: "+50 XP", subtitle: "探索经验加成")
-                    RewardBadge(icon: "rosette", title: "雨林光学大师", subtitle: "专属探索勋章")
-                    RewardBadge(icon: "scope", title: "400× 显微镜", subtitle: "已解锁纳米视界")
+                    RewardBadge(icon: "bolt.fill", title: "+\(AppState.unlockReward) XP", subtitle: "探索经验加成")
+                    RewardBadge(icon: "rosette", title: "\(species.nameZh)勋章", subtitle: "专属探索勋章")
+                    RewardBadge(icon: "scope", title: "400× 显微镜", subtitle: "可观察微观结构")
                 }
 
                 // Action Buttons

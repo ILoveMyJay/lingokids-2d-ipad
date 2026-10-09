@@ -1,7 +1,7 @@
 import Foundation
 
 public struct BodyPart: Identifiable, Hashable {
-    public let id: String
+    public var id: String
     public let number: Int
     public let nameZh: String
     public let nameEn: String
@@ -45,7 +45,7 @@ public struct Species: Identifiable, Hashable {
     public let rarity: Int
     public var isUnlocked: Bool
     public var isFavorite: Bool
-    public let bodyParts: [BodyPart]
+    public var bodyParts: [BodyPart]
 
     public init(
         id: String,
@@ -91,7 +91,7 @@ public struct Species: Identifiable, Hashable {
 }
 
 public struct SpeciesDataStore {
-    public static let sampleSpecies: [Species] = [
+    private static let rawSpecies: [Species] = [
         Species(
             id: "blue-morpho",
             categoryId: "insects",
@@ -4062,15 +4062,25 @@ public struct SpeciesDataStore {
         )
     ]
 
+    /// All species. Body-part IDs are namespaced as "<speciesId>/<partId>" so they are globally unique
+    /// (several species share part IDs such as "compound-eyes" / "legs" / "abdomen").
+    public static let sampleSpecies: [Species] = rawSpecies.map { sp in
+        var copy = sp
+        copy.bodyParts = sp.bodyParts.map { part in
+            var p = part
+            p.id = "\(sp.id)/\(part.id)"
+            return p
+        }
+        return copy
+    }
+
+    public static func species(by id: String) -> Species? {
+        sampleSpecies.first(where: { $0.id == id })
+    }
+
     public static func getSpecies(by id: String) -> Species {
-        if let s = sampleSpecies.first(where: { $0.id == id }) {
-            return s
-        }
-        if id == "blue-morpho" {
-            if let s = sampleSpecies.first(where: { $0.id == "monarch-butterfly" }) {
-                return s
-            }
-        }
+        if let s = species(by: id) { return s }
+        assertionFailure("Unknown species id: \(id)")
         return sampleSpecies[0]
     }
 }

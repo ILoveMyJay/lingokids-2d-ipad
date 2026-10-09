@@ -1,13 +1,14 @@
 import SwiftUI
 
 public struct ProfileView: View {
-    @State private var userProfile: UserProfile
+    @EnvironmentObject private var appState: AppState
     let onOpenPayModal: () -> Void
 
-    public init(userProfile: UserProfile = UserProfile(), onOpenPayModal: @escaping () -> Void) {
-        self._userProfile = State(initialValue: userProfile)
+    public init(onOpenPayModal: @escaping () -> Void) {
         self.onOpenPayModal = onOpenPayModal
     }
+
+    private var userProfile: UserProfile { appState.userProfile }
 
     public var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -56,7 +57,7 @@ public struct ProfileView: View {
                             .clipShape(Capsule())
                         }
 
-                        Text("自然见习学者 · 探索经验 3,000 / 5,000 XP")
+                        Text("自然\(userProfile.title) · 探索经验 \(userProfile.xpProgressText)")
                             .font(.system(size: 13))
                             .foregroundColor(Color.textMuted)
 
@@ -69,20 +70,21 @@ public struct ProfileView: View {
 
                     // Check-in Button
                     Button(action: {
-                        userProfile.isCheckedIn = true
+                        appState.checkIn()
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: userProfile.isCheckedIn ? "checkmark.circle.fill" : "calendar.badge.clock")
                                 .font(.system(size: 13))
-                            Text(userProfile.isCheckedIn ? "今日已打卡 +20 XP" : "每日打卡")
+                            Text(userProfile.isCheckedIn ? "今日已打卡 +\(AppState.checkInReward) XP" : "每日打卡 +\(AppState.checkInReward) XP")
                                 .font(.system(size: 13, weight: .bold))
                         }
                         .foregroundColor(Color.darkEmeraldBg)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 10)
-                        .background(Color.biolumMint)
+                        .background(Color.biolumMint.opacity(userProfile.isCheckedIn ? 0.55 : 1))
                         .clipShape(Capsule())
                     }
+                    .disabled(userProfile.isCheckedIn)
                 }
                 .padding(24)
                 .background(Color.darkEmeraldCard)

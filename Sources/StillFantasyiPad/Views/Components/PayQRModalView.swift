@@ -43,7 +43,7 @@ public struct PayQRModalView: View {
                     .font(.system(size: 20, weight: .black))
                     .foregroundColor(Color.textLight)
 
-                Text("开通后立即解锁全部 23+ 种生物深度解剖与 1,600+ 高清原声")
+                Text("开通后立即解锁全部 \(SpeciesDataStore.sampleSpecies.count) 种生物深度解剖与 1,600+ 高清原声")
                     .font(.system(size: 12))
                     .foregroundColor(Color.textMuted)
                     .multilineTextAlignment(.center)

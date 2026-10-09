@@ -31,3 +31,6 @@ Package.resolved
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Local patches
+patch/

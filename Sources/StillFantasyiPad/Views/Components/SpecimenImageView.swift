@@ -7,41 +7,35 @@ import AppKit
 public typealias PlatformImage = NSImage
 #endif
 
-public func loadPlatformImage(path: String) -> PlatformImage? {
-    // 1. Direct filesystem check (lingokids-2d/public or relative)
-    let candidatePaths = [
-        path,
-        "Resources/" + path,
-        "../Resources/" + path,
-        "../../Resources/" + path,
-        "/Users/alan/Documents/AI/ipad/lingokids-2d/public/" + path,
-        "/Users/alan/Documents/AI/ipad/StillFantasyiPad/Resources/" + path
-    ]
-    for p in candidatePaths {
-        if FileManager.default.fileExists(atPath: p),
-           let data = try? Data(contentsOf: URL(fileURLWithPath: p)) {
-            #if canImport(UIKit)
-            if let img = UIImage(data: data) { return img }
-            #elseif canImport(AppKit)
-            if let img = NSImage(data: data) { return img }
-            #endif
+public let R2_ASSET_BASE_URL = "https://pub-b3da7c8f7c904e1cbd9dc49d66964ff6.r2.dev"
+
+// MARK: - Local resource lookup
+
+enum LocalImageLocator {
+    /// Looks for a bundled copy of the image. No machine-specific absolute paths:
+    /// - app bundle (`Resources/` folder reference, or flattened)
+    /// - optional dev override via the STILLFANTASY_RESOURCES_DIR environment variable
+    /// - `Resources/` next to the working directory (handy for `swift run` on macOS)
+    static func url(for path: String) -> URL? {
+        let fm = FileManager.default
+        var candidates: [URL] = []
+
+        if let base = Bundle.main.resourceURL {
+            candidates.append(base.appendingPathComponent("Resources").appendingPathComponent(path))
+            candidates.append(base.appendingPathComponent(path))
         }
-    }
-
-    // 2. Check Bundle.main
-    if let url = Bundle.main.url(forResource: path, withExtension: nil),
-       let data = try? Data(contentsOf: url) {
-        #if canImport(UIKit)
-        if let img = UIImage(data: data) { return img }
-        #elseif canImport(AppKit)
-        if let img = NSImage(data: data) { return img }
+        if let dir = ProcessInfo.processInfo.environment["STILLFANTASY_RESOURCES_DIR"], !dir.isEmpty {
+            candidates.append(URL(fileURLWithPath: dir).appendingPathComponent(path))
+        }
+        #if os(macOS)
+        candidates.append(URL(fileURLWithPath: fm.currentDirectoryPath).appendingPathComponent("Resources").appendingPathComponent(path))
         #endif
-    }
 
-    return nil
+        return candidates.first { fm.fileExists(atPath: $0.path) }
+    }
 }
 
-public let R2_ASSET_BASE_URL = "https://pub-b3da7c8f7c904e1cbd9dc49d66964ff6.r2.dev"
+// MARK: - Cache
 
 public final class ImageCacheService {
     public static let shared = ImageCacheService()
@@ -70,47 +64,32 @@ public final class ImageCacheService {
         return cacheDirectory.appendingPathComponent(safeName)
     }
 
-    public func image(for key: String) -> PlatformImage? {
-        // 1. Check memory cache (instant)
-        if let memImg = memoryCache.object(forKey: key as NSString) {
-            return memImg
-        }
+    /// Memory-only lookup; cheap enough to call from the main thread.
+    public func memoryImage(for key: String) -> PlatformImage? {
+        memoryCache.object(forKey: key as NSString)
+    }
 
-        // 2. Check disk cache (persistent offline)
+    /// Memory, then disk. Disk access happens on the calling thread, so call off the main thread.
+    public func image(for key: String) -> PlatformImage? {
+        if let memImg = memoryImage(for: key) { return memImg }
+
         let fileURL = diskFileURL(for: key)
-        if fileManager.fileExists(atPath: fileURL.path),
-           let data = try? Data(contentsOf: fileURL) {
-            #if canImport(UIKit)
-            if let img = UIImage(data: data) {
-                memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
-                return img
-            }
-            #elseif canImport(AppKit)
-            if let img = NSImage(data: data) {
-                memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
-                return img
-            }
-            #endif
+        if let data = try? Data(contentsOf: fileURL), let img = Self.decode(data) {
+            memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
+            return img
         }
         return nil
     }
 
     public func store(data: Data, for key: String) -> PlatformImage? {
-        let fileURL = diskFileURL(for: key)
-        try? data.write(to: fileURL)
+        guard let img = Self.decode(data) else { return nil }   // never cache non-image payloads
+        try? data.write(to: diskFileURL(for: key), options: .atomic)
+        memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
+        return img
+    }
 
-        #if canImport(UIKit)
-        if let img = UIImage(data: data) {
-            memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
-            return img
-        }
-        #elseif canImport(AppKit)
-        if let img = NSImage(data: data) {
-            memoryCache.setObject(img, forKey: key as NSString, cost: data.count)
-            return img
-        }
-        #endif
-        return nil
+    public func remember(_ image: PlatformImage, cost: Int, for key: String) {
+        memoryCache.setObject(image, forKey: key as NSString, cost: cost)
     }
 
     public func clearCache() {
@@ -118,7 +97,62 @@ public final class ImageCacheService {
         try? fileManager.removeItem(at: cacheDirectory)
         try? fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
     }
+
+    /// Decodes the image up front (off the main thread) so scrolling doesn't stall on first draw.
+    static func decode(_ data: Data) -> PlatformImage? {
+        #if canImport(UIKit)
+        guard let img = UIImage(data: data) else { return nil }
+        return img.preparingForDisplay() ?? img
+        #else
+        return NSImage(data: data)
+        #endif
+    }
 }
+
+// MARK: - Loader
+
+enum SpecimenImageLoader {
+    /// local bundle -> memory/disk cache -> remote (with retry). Returns nil if cancelled or unavailable.
+    static func load(key: String) async -> PlatformImage? {
+        if let cached = ImageCacheService.shared.memoryImage(for: key) { return cached }
+
+        // Local + disk work happens off the main thread.
+        let local: PlatformImage? = await Task.detached(priority: .userInitiated) { () -> PlatformImage? in
+            if let url = LocalImageLocator.url(for: key),
+               let data = try? Data(contentsOf: url),
+               let img = ImageCacheService.decode(data) {
+                ImageCacheService.shared.remember(img, cost: data.count, for: key)
+                return img
+            }
+            return ImageCacheService.shared.image(for: key)
+        }.value
+        if let local { return local }
+        if Task.isCancelled { return nil }
+
+        guard let url = URL(string: "\(R2_ASSET_BASE_URL)/\(key)") else { return nil }
+
+        for attempt in 0..<3 {
+            if Task.isCancelled { return nil }
+            do {
+                let (data, response) = try await URLSession.shared.data(from: url)
+                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                if status == 200 {
+                    return await Task.detached(priority: .userInitiated) { () -> PlatformImage? in
+                        ImageCacheService.shared.store(data: data, for: key)
+                    }.value
+                }
+                if status == 403 || status == 404 { return nil }   // permanent: don't retry
+            } catch {
+                if Task.isCancelled { return nil }
+            }
+            // transient failure: back off 0.5s, 1s, 1.5s
+            try? await Task.sleep(nanoseconds: UInt64(attempt + 1) * 500_000_000)
+        }
+        return nil
+    }
+}
+
+// MARK: - View
 
 public struct SpecimenImageView: View {
     let path: String
@@ -126,6 +160,8 @@ public struct SpecimenImageView: View {
 
     @State private var displayImage: PlatformImage? = nil
     @State private var isLoading: Bool = false
+    @State private var didFail: Bool = false
+    @State private var reloadToken: Int = 0
 
     public init(_ path: String, contentMode: ContentMode = .fill) {
         self.path = path
@@ -156,48 +192,37 @@ public struct SpecimenImageView: View {
                 }
             } else {
                 placeholderView
+                    .onTapGesture {
+                        if didFail { reloadToken += 1 }
+                    }
             }
         }
-        .onAppear {
-            loadImage()
-        }
-        .onChange(of: path) { _ in
-            loadImage()
+        // .task(id:) cancels the previous load when `path` changes, so a slow old request
+        // can never overwrite the image of the newly selected species.
+        .task(id: "\(cleanKey)#\(reloadToken)") {
+            await load()
         }
     }
 
-    private func loadImage() {
-        // 1. Direct local file check
-        if let local = loadPlatformImage(path: path) {
-            self.displayImage = local
+    @MainActor
+    private func load() async {
+        didFail = false
+        let key = cleanKey
+        if let cached = ImageCacheService.shared.memoryImage(for: key) {
+            displayImage = cached
+            isLoading = false
             return
         }
-
-        // 2. Persistent disk & memory cache check
-        if let cached = ImageCacheService.shared.image(for: cleanKey) {
-            self.displayImage = cached
-            return
-        }
-
-        // 3. Cloudflare R2 Remote fetch + auto cache to disk
-        guard let url = URL(string: "\(R2_ASSET_BASE_URL)/\(cleanKey)") else {
-            return
-        }
-
+        displayImage = nil          // don't keep showing the previous species' image
         isLoading = true
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                guard let data = data, error == nil,
-                      let httpResponse = response as? HTTPURLResponse,
-                      httpResponse.statusCode == 200 else {
-                    return
-                }
-                if let img = ImageCacheService.shared.store(data: data, for: cleanKey) {
-                    self.displayImage = img
-                }
-            }
-        }.resume()
+        let img = await SpecimenImageLoader.load(key: key)
+        if Task.isCancelled { return }
+        isLoading = false
+        if let img {
+            displayImage = img
+        } else {
+            didFail = true
+        }
     }
 
     private var placeholderView: some View {
@@ -208,10 +233,10 @@ public struct SpecimenImageView: View {
                 endPoint: .bottomTrailing
             )
             VStack(spacing: 8) {
-                Image(systemName: "photo.artframe")
+                Image(systemName: didFail ? "arrow.clockwise" : "photo.artframe")
                     .font(.system(size: 32))
                     .foregroundColor(Color.biolumMint.opacity(0.4))
-                Text(path.components(separatedBy: "/").last ?? "Specimen")
+                Text(didFail ? "加载失败，轻点重试" : (path.components(separatedBy: "/").last ?? "Specimen"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(Color.textMuted.opacity(0.6))
             }

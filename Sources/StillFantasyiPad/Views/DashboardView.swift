@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct DashboardView: View {
+    @EnvironmentObject private var appState: AppState
     @Binding var activeTab: String
     @Binding var selectedSpeciesId: String
     let onOpenPayModal: () -> Void
@@ -37,23 +38,28 @@ public struct DashboardView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 380)
                         .clipped()
+                        .brightness(0.08)
+                        .saturation(1.08)
+                        // Bottom fade only where the text sits (kept light so the photo stays bright)
                         .overlay(
                             LinearGradient(
-                                colors: [
-                                    Color.darkEmeraldBg.opacity(0.1),
-                                    Color.darkEmeraldBg.opacity(0.7),
-                                    Color.darkEmeraldBg
+                                stops: [
+                                    .init(color: Color.darkEmeraldBg.opacity(0.0), location: 0.0),
+                                    .init(color: Color.darkEmeraldBg.opacity(0.0), location: 0.45),
+                                    .init(color: Color.darkEmeraldBg.opacity(0.55), location: 0.8),
+                                    .init(color: Color.darkEmeraldBg.opacity(0.9), location: 1.0)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
                         )
+                        // Soft left-hand scrim behind the headline
                         .overlay(
                             LinearGradient(
-                                colors: [
-                                    Color.darkEmeraldBg.opacity(0.9),
-                                    Color.darkEmeraldBg.opacity(0.5),
-                                    Color.clear
+                                stops: [
+                                    .init(color: Color.darkEmeraldBg.opacity(0.55), location: 0.0),
+                                    .init(color: Color.darkEmeraldBg.opacity(0.15), location: 0.45),
+                                    .init(color: Color.clear, location: 0.75)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -118,6 +124,7 @@ public struct DashboardView: View {
                             Text(currentFeatured.nameZh)
                                 .font(.system(size: 40, weight: .black))
                                 .foregroundColor(Color.textLight)
+                                .shadow(color: Color.black.opacity(0.55), radius: 8, y: 2)
 
                             Text("\(currentFeatured.nameEn) · \(currentFeatured.scientificName)")
                                 .font(.system(size: 13, weight: .medium))
@@ -125,7 +132,8 @@ public struct DashboardView: View {
 
                             Text(currentFeatured.overviewZh)
                                 .font(.system(size: 13))
-                                .foregroundColor(Color.textMuted)
+                                .foregroundColor(Color.textLight.opacity(0.92))
+                                .shadow(color: Color.black.opacity(0.55), radius: 5, y: 1)
                                 .lineLimit(3)
                                 .frame(maxWidth: 520, alignment: .leading)
 
@@ -184,7 +192,7 @@ public struct DashboardView: View {
                                     .frame(width: 84, height: 84)
 
                                 Circle()
-                                    .trim(from: 0.0, to: 0.27)
+                                    .trim(from: 0.0, to: CGFloat(appState.explorationProgress))
                                     .stroke(
                                         LinearGradient(
                                             colors: [Color.biolumMint, Color.biolumEmerald],
@@ -197,7 +205,7 @@ public struct DashboardView: View {
                                     .frame(width: 84, height: 84)
 
                                 VStack(spacing: 2) {
-                                    Text("27%")
+                                    Text(appState.explorationPercentText)
                                         .font(.system(size: 18, weight: .black))
                                         .foregroundColor(Color.textLight)
                                     Text("探索度")
@@ -206,7 +214,7 @@ public struct DashboardView: View {
                                 }
                             }
 
-                            Text("已解锁 32/120 种生命")
+                            Text("已解锁 \(appState.unlockedCount)/\(appState.totalSpeciesCount) 种生命")
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(Color.textLight)
 
@@ -247,7 +255,7 @@ public struct DashboardView: View {
                         Spacer()
 
                         Button(action: { activeTab = "codex" }) {
-                            Text("查看全部 32+ 物种 →")
+                            Text("查看全部 \(appState.totalSpeciesCount) 种物种 →")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(Color.biolumMint)
                         }
@@ -349,7 +357,7 @@ public struct DashboardView: View {
                                             .clipped()
                                             .cornerRadius(16)
 
-                                        Text("\(cat.speciesCount) 物种")
+                                        Text("\(appState.speciesCount(inCategory: cat.id)) 物种")
                                             .font(.system(size: 9, weight: .bold))
                                             .foregroundColor(Color.darkEmeraldBg)
                                             .padding(.horizontal, 8)

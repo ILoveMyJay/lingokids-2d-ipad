@@ -50,17 +50,18 @@ public struct AnatomyStageView: View {
                 // Voiceover button
                 if !currentSpecies.bodyParts.isEmpty {
                     let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+                    let token = "anatomy-\(part.id)"
                     Button(action: {
-                        if audioService.isPlaying {
+                        if audioService.isActive(token: token) {
                             audioService.stop()
                         } else {
-                            audioService.speak(text: "\(part.nameZh)。\(part.descZh) \(part.funFactZh ?? "")")
+                            audioService.speak(text: "\(part.nameZh)。\(part.descZh) \(part.funFactZh ?? "")", token: token)
                         }
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: audioService.isPlaying ? "waveform" : "speaker.wave.2")
+                            Image(systemName: audioService.isActive(token: token) ? "waveform" : "speaker.wave.2")
                                 .font(.system(size: 12))
-                            Text(audioService.isPlaying ? "解说中" : "语音讲解")
+                            Text(audioService.isActive(token: token) ? "解说中" : "语音讲解")
                                 .font(.system(size: 12, weight: .medium))
                         }
                         .foregroundColor(Color.darkEmeraldBg)
@@ -123,54 +124,14 @@ public struct AnatomyStageView: View {
             HStack(spacing: 20) {
                 // Left Specimen Stage
                 VStack(spacing: 16) {
-                    ZStack {
-                        // Specimen Image
-                        SpecimenImageView(currentSpecies.coverImage, contentMode: .fit)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.darkEmeraldSurface)
-                            .cornerRadius(24)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.darkEmeraldBorder, lineWidth: 1.5)
-                            )
-
-                        // Interactive Hotspots (Bound to currentSpecies.bodyParts)
-                        GeometryReader { geo in
-                            ForEach(0..<currentSpecies.bodyParts.count, id: \.self) { idx in
-                                let part = currentSpecies.bodyParts[idx]
-                                let xPos = geo.size.width * CGFloat(part.hotspotX / 100.0)
-                                let yPos = geo.size.height * CGFloat(part.hotspotY / 100.0)
-                                let isSelected = (selectedPartIndex == idx)
-
-                                 Button(action: {
-                                    withAnimation(.spring()) {
-                                        selectedPartIndex = idx
-                                        selectedBodyPartId = part.id
-                                    }
-                                }) {
-                                    ZStack {
-                                        // Pulse Ring
-                                        if isSelected {
-                                            Circle()
-                                                .stroke(Color.biolumMint.opacity(0.6), lineWidth: 2)
-                                                .frame(width: 44, height: 44)
-                                        }
-
-                                        Circle()
-                                            .fill(isSelected ? Color.amberGold : Color.biolumMint)
-                                            .frame(width: 28, height: 28)
-                                            .shadow(color: isSelected ? Color.amberGold.opacity(0.8) : Color.biolumMint.opacity(0.5), radius: 8)
-
-                                        Text("\(part.number)")
-                                            .font(.system(size: 12, weight: .black))
-                                            .foregroundColor(Color.darkEmeraldBg)
-                                    }
-                                }
-                                .position(x: xPos, y: yPos)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    SpecimenImageView(currentSpecies.coverImage, contentMode: .fit)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.darkEmeraldSurface)
+                        .cornerRadius(24)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(Color.darkEmeraldBorder, lineWidth: 1.5)
+                        )
 
                     // Bottom Teaser: Micro World
                     HStack(spacing: 16) {
@@ -249,12 +210,8 @@ public struct AnatomyStageView: View {
                                         selectedBodyPartId = part.id
                                     }
                                 }) {
-                                    HStack(spacing: 6) {
-                                        Text(String(format: "%02d", part.number))
-                                            .font(.system(size: 10, weight: .bold))
-                                        Text(part.nameZh)
-                                            .font(.system(size: 12, weight: .semibold))
-                                    }
+                                    Text(part.nameZh)
+                                        .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(selectedPartIndex == idx ? Color.darkEmeraldBg : Color.textMuted)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
@@ -284,7 +241,7 @@ public struct AnatomyStageView: View {
 
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
-                                    Text(String(format: "%02d · %@", currentPart.number, currentPart.nameZh))
+                                    Text(currentPart.nameZh)
                                         .font(.system(size: 18, weight: .bold))
                                         .foregroundColor(Color.textLight)
                                     Spacer()
@@ -360,6 +317,9 @@ public struct AnatomyStageView: View {
         }
         .onChange(of: selectedSpeciesId) { _ in
             syncActivePart()
+        }
+        .onChange(of: selectedPartIndex) { _ in
+            audioService.stop()
         }
         .onChange(of: selectedBodyPartId) { _ in
             syncActivePart()

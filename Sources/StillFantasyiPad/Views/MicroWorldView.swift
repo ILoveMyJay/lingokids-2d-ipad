@@ -8,6 +8,10 @@ public struct MicroWorldView: View {
     @State private var selectedPartIndex: Int = 0
     @State private var selectedClassicIndex: Int = 0
     @State private var zoomScale: Double = 1.0
+    @State private var panOffset: CGSize = .zero
+    @State private var lastPanOffset: CGSize = .zero
+    @State private var pinchStartScale: Double? = nil
+    @State private var viewportSize: CGSize = .zero
     @State private var showGrid: Bool = true
     @State private var isInverted: Bool = false
     @State private var mode: MicroMode = .speciesParts
@@ -82,6 +86,61 @@ public struct MicroWorldView: View {
         }
     }
 
+    private let minZoom: Double = 1.0
+    private let maxZoom: Double = 4.0
+
+    /// Real optical base magnification of what is on screen (parts are 400x; classic slices carry their own).
+    private var baseMagnification: Double {
+        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty { return 400 }
+        let item = classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)]
+        let digits = item.magnification.filter { $0.isNumber }
+        return Double(digits) ?? 400
+    }
+
+    private func resetView() {
+        zoomScale = 1.0
+        panOffset = .zero
+        lastPanOffset = .zero
+        pinchStartScale = nil
+    }
+
+    /// Keeps the image from being dragged past its own edges (no black borders).
+    private func clampedOffset(_ offset: CGSize, scale: Double) -> CGSize {
+        let maxX = viewportSize.width * CGFloat(scale - 1) / 2
+        let maxY = viewportSize.height * CGFloat(scale - 1) / 2
+        return CGSize(
+            width: min(max(offset.width, -maxX), maxX),
+            height: min(max(offset.height, -maxY), maxY)
+        )
+    }
+
+    private var panGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                guard zoomScale > minZoom else { return }
+                panOffset = clampedOffset(
+                    CGSize(width: lastPanOffset.width + value.translation.width,
+                           height: lastPanOffset.height + value.translation.height),
+                    scale: zoomScale
+                )
+            }
+            .onEnded { _ in
+                lastPanOffset = panOffset
+            }
+    }
+
+    private var pinchGesture: some Gesture {
+        MagnifyGesture()
+            .onChanged { value in
+                let start = pinchStartScale ?? zoomScale
+                pinchStartScale = start
+                zoomScale = min(max(start * Double(value.magnification), minZoom), maxZoom)
+            }
+            .onEnded { _ in
+                pinchStartScale = nil
+            }
+    }
+
     private func syncWithSelectedBodyPart() {
         let parts = currentSpecies.bodyParts
         if let partId = selectedBodyPartId,
@@ -91,7 +150,7 @@ public struct MicroWorldView: View {
         } else {
             selectedPartIndex = 0
         }
-        zoomScale = 1.0
+        resetView()
     }
 
     public var body: some View {
@@ -130,7 +189,7 @@ public struct MicroWorldView: View {
                 HStack(spacing: 12) {
                     // Mode Switch Pills
                     HStack(spacing: 4) {
-                        Button(action: { mode = .speciesParts }) {
+                        Button(action: { mode = .speciesParts; resetView() }) {
                             Text("当前动物部位")
                                 .font(.system(size: 11, weight: mode == .speciesParts ? .bold : .medium))
                                 .foregroundColor(mode == .speciesParts ? Color.darkEmeraldBg : Color.textMuted)
@@ -140,7 +199,7 @@ public struct MicroWorldView: View {
                                 .clipShape(Capsule())
                         }
 
-                        Button(action: { mode = .classic }) {
+                        Button(action: { mode = .classic; resetView() }) {
                             Text("通用切片")
                                 .font(.system(size: 11, weight: mode == .classic ? .bold : .medium))
                                 .foregroundColor(mode == .classic ? Color.darkEmeraldBg : Color.textMuted)
@@ -171,13 +230,14 @@ public struct MicroWorldView: View {
 
                     // Audio
                     Button(action: {
-                        if audioService.isPlaying {
+                        let token = "micro-\(activeTitleZh)"
+                        if audioService.isActive(token: token) {
                             audioService.stop()
                         } else {
-                            audioService.speak(text: "\(activeTitleZh)。\(activeDescription) \(activeFunFact ?? "")")
+                            audioService.speak(text: "\(activeTitleZh)。\(activeDescription) \(activeFunFact ?? "")", token: token)
                         }
                     }) {
-                        Image(systemName: audioService.isPlaying ? "waveform" : "speaker.wave.2")
+                        Image(systemName: audioService.isActive(token: "micro-\(activeTitleZh)") ? "waveform" : "speaker.wave.2")
                             .font(.system(size: 16))
                             .foregroundColor(Color.biolumMint)
                     }
@@ -191,24 +251,27 @@ public struct MicroWorldView: View {
 
             // MARK: - Center Viewport with Zoom & Grid
             ZStack(alignment: .bottom) {
-                // Microscope Specimen View
-                ZStack {
-                    Color.black
+                // Microscope Specimen View (pinch to zoom, drag to pan, double-tap to reset)
+                GeometryReader { geo in
+                    ZStack {
+                        Color.black
 
-                    Group {
-                        if isInverted {
-                            SpecimenImageView(activeImage, contentMode: .fill)
-                                .colorInvert()
-                        } else {
-                            SpecimenImageView(activeImage, contentMode: .fill)
+                        Group {
+                            if isInverted {
+                                SpecimenImageView(activeImage, contentMode: .fill)
+                                    .colorInvert()
+                            } else {
+                                SpecimenImageView(activeImage, contentMode: .fill)
+                            }
                         }
-                    }
-                    .scaleEffect(CGFloat(zoomScale))
-                    .animation(.easeOut(duration: 0.2), value: zoomScale)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .scaleEffect(CGFloat(zoomScale))
+                        .offset(panOffset)
+                        .animation(.easeOut(duration: 0.12), value: zoomScale)
 
-                    // Reticle & Grid Overlay
-                    if showGrid {
-                        GeometryReader { geo in
+                        // Reticle & Grid Overlay (fixed to the eyepiece, like a real reticle)
+                        if showGrid {
                             Path { path in
                                 let w = geo.size.width
                                 let h = geo.size.height
@@ -235,14 +298,24 @@ public struct MicroWorldView: View {
                                 }
                             }
                             .stroke(Color.biolumMint.opacity(0.15), lineWidth: 0.8)
+                            .allowsHitTesting(false)
 
-                            // Center Circle
                             Circle()
                                 .stroke(Color.biolumMint.opacity(0.4), lineWidth: 1.5)
                                 .frame(width: 140, height: 140)
                                 .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                                .allowsHitTesting(false)
                         }
                     }
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .contentShape(Rectangle())
+                    .gesture(panGesture)
+                    .simultaneousGesture(pinchGesture)
+                    .onTapGesture(count: 2) {
+                        withAnimation(.easeOut(duration: 0.2)) { resetView() }
+                    }
+                    .onAppear { viewportSize = geo.size }
+                    .onChange(of: geo.size) { newSize in viewportSize = newSize }
                 }
                 .clipped()
                 .cornerRadius(24)
@@ -260,13 +333,13 @@ public struct MicroWorldView: View {
                         Text("当前等效放大倍率")
                             .font(.system(size: 10))
                             .foregroundColor(Color.textMuted)
-                        Text(String(format: "%.0f×", 400.0 * zoomScale))
+                        Text(String(format: "%.0f×", baseMagnification * zoomScale))
                             .font(.system(size: 16, weight: .black))
                             .foregroundColor(Color.biolumMint)
                     }
 
                     // Zoom Slider
-                    Slider(value: $zoomScale, in: 0.8...2.5, step: 0.1)
+                    Slider(value: $zoomScale, in: minZoom...maxZoom, step: 0.1)
                         .tint(Color.biolumMint)
 
                     HStack(spacing: 4) {
@@ -331,7 +404,7 @@ public struct MicroWorldView: View {
                                     withAnimation(.spring()) {
                                         selectedPartIndex = idx
                                         selectedBodyPartId = part.id
-                                        zoomScale = 1.0
+                                        resetView()
                                     }
                                 }) {
                                     HStack(spacing: 10) {
@@ -370,7 +443,7 @@ public struct MicroWorldView: View {
                                 Button(action: {
                                     withAnimation(.spring()) {
                                         selectedClassicIndex = idx
-                                        zoomScale = 1.0
+                                        resetView()
                                     }
                                 }) {
                                     HStack(spacing: 10) {
@@ -413,6 +486,18 @@ public struct MicroWorldView: View {
         }
         .onChange(of: selectedBodyPartId) { _ in
             syncWithSelectedBodyPart()
+        }
+        .onChange(of: zoomScale) { newScale in
+            if newScale <= minZoom + 0.001 {
+                panOffset = .zero
+                lastPanOffset = .zero
+            } else {
+                panOffset = clampedOffset(panOffset, scale: newScale)
+                lastPanOffset = panOffset
+            }
+        }
+        .onChange(of: activeImage) { _ in
+            audioService.stop()
         }
         .onChange(of: selectedSpeciesId) { _ in
             syncWithSelectedBodyPart()

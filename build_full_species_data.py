@@ -23,7 +23,11 @@ def clean_img_path(path: str) -> str:
         path = path[1:]
     return path
 
-species_files = sorted(glob.glob('/Users/alan/Documents/AI/ipad/lingokids-2d/src/data/species/*.ts'))
+import os, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+# Usage: python3 build_full_species_data.py [path/to/lingokids-2d/src/data/species]
+SPECIES_DIR = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('LINGOKIDS_SPECIES_DIR', os.path.join(HERE, '..', 'lingokids-2d', 'src', 'data', 'species'))
+species_files = sorted(glob.glob(os.path.join(SPECIES_DIR, '*.ts')))
 
 all_species = []
 
@@ -136,7 +140,7 @@ print(f"Total compiled species: {len(all_species)}")
 swift_code = """import Foundation
 
 public struct BodyPart: Identifiable, Hashable {
-    public let id: String
+    public var id: String
     public let number: Int
     public let nameZh: String
     public let nameEn: String
@@ -180,7 +184,7 @@ public struct Species: Identifiable, Hashable {
     public let rarity: Int
     public var isUnlocked: Bool
     public var isFavorite: Bool
-    public let bodyParts: [BodyPart]
+    public var bodyParts: [BodyPart]
 
     public init(
         id: String,
@@ -226,7 +230,7 @@ public struct Species: Identifiable, Hashable {
 }
 
 public struct SpeciesDataStore {
-    public static let sampleSpecies: [Species] = [
+    private static let rawSpecies: [Species] = [
 """
 
 species_items = []
@@ -278,21 +282,31 @@ swift_code += ",\n".join(species_items)
 swift_code += """
     ]
 
+    /// All species. Body-part IDs are namespaced as "<speciesId>/<partId>" so they are globally unique
+    /// (several species share part IDs such as "compound-eyes" / "legs" / "abdomen").
+    public static let sampleSpecies: [Species] = rawSpecies.map { sp in
+        var copy = sp
+        copy.bodyParts = sp.bodyParts.map { part in
+            var p = part
+            p.id = "\\(sp.id)/\\(part.id)"
+            return p
+        }
+        return copy
+    }
+
+    public static func species(by id: String) -> Species? {
+        sampleSpecies.first(where: { $0.id == id })
+    }
+
     public static func getSpecies(by id: String) -> Species {
-        if let s = sampleSpecies.first(where: { $0.id == id }) {
-            return s
-        }
-        if id == "blue-morpho" {
-            if let s = sampleSpecies.first(where: { $0.id == "monarch-butterfly" }) {
-                return s
-            }
-        }
+        if let s = species(by: id) { return s }
+        assertionFailure("Unknown species id: \\(id)")
         return sampleSpecies[0]
     }
 }
 """
 
-target_path = "/Users/alan/Documents/AI/ipad/StillFantasyiPad/Sources/StillFantasyiPad/Models/Species.swift"
+target_path = os.path.join(HERE, "Sources", "StillFantasyiPad", "Models", "Species.swift")
 with open(target_path, "w", encoding="utf-8") as f:
     f.write(swift_code)
 
