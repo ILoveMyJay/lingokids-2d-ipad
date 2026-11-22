@@ -1,17 +1,11 @@
 import SwiftUI
 
 public struct MicroWorldView: View {
-    @Binding var selectedSpeciesId: String
-    @Binding var selectedBodyPartId: String?
-    @Binding var activeTab: String
+    @EnvironmentObject private var router: AppRouter
 
     @State private var selectedPartIndex: Int = 0
     @State private var selectedClassicIndex: Int = 0
     @State private var zoomScale: Double = 1.0
-    @State private var panOffset: CGSize = .zero
-    @State private var lastPanOffset: CGSize = .zero
-    @State private var pinchStartScale: Double? = nil
-    @State private var viewportSize: CGSize = .zero
     @State private var showGrid: Bool = true
     @State private var isInverted: Bool = false
     @State private var mode: MicroMode = .speciesParts
@@ -22,23 +16,16 @@ public struct MicroWorldView: View {
         case classic
     }
 
-    private var currentSpecies: Species {
-        SpeciesDataStore.getSpecies(by: selectedSpeciesId)
-    }
-
+    private let minZoom: Double = 1.0
+    private let maxZoom: Double = 4.0
     private let classicSpecimens = MicroSpecimenDataStore.specimens
 
-    public init(
-        selectedSpeciesId: Binding<String>,
-        selectedBodyPartId: Binding<String?>,
-        activeTab: Binding<String>
-    ) {
-        self._selectedSpeciesId = selectedSpeciesId
-        self._selectedBodyPartId = selectedBodyPartId
-        self._activeTab = activeTab
+    public init() {}
+
+    private var currentSpecies: Species {
+        SpeciesDataStore.getSpecies(by: router.selectedSpeciesId)
     }
 
-    // Currently observed image
     private var activeImage: String {
         if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
             let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
@@ -86,9 +73,6 @@ public struct MicroWorldView: View {
         }
     }
 
-    private let minZoom: Double = 1.0
-    private let maxZoom: Double = 4.0
-
     /// Real optical base magnification of what is on screen (parts are 400x; classic slices carry their own).
     private var baseMagnification: Double {
         if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty { return 400 }
@@ -97,67 +81,23 @@ public struct MicroWorldView: View {
         return Double(digits) ?? 400
     }
 
-    private func resetView() {
-        zoomScale = 1.0
-        panOffset = .zero
-        lastPanOffset = .zero
-        pinchStartScale = nil
-    }
-
-    /// Keeps the image from being dragged past its own edges (no black borders).
-    private func clampedOffset(_ offset: CGSize, scale: Double) -> CGSize {
-        let maxX = viewportSize.width * CGFloat(scale - 1) / 2
-        let maxY = viewportSize.height * CGFloat(scale - 1) / 2
-        return CGSize(
-            width: min(max(offset.width, -maxX), maxX),
-            height: min(max(offset.height, -maxY), maxY)
-        )
-    }
-
-    private var panGesture: some Gesture {
-        DragGesture()
-            .onChanged { value in
-                guard zoomScale > minZoom else { return }
-                panOffset = clampedOffset(
-                    CGSize(width: lastPanOffset.width + value.translation.width,
-                           height: lastPanOffset.height + value.translation.height),
-                    scale: zoomScale
-                )
-            }
-            .onEnded { _ in
-                lastPanOffset = panOffset
-            }
-    }
-
-    private var pinchGesture: some Gesture {
-        MagnifyGesture()
-            .onChanged { value in
-                let start = pinchStartScale ?? zoomScale
-                pinchStartScale = start
-                zoomScale = min(max(start * Double(value.magnification), minZoom), maxZoom)
-            }
-            .onEnded { _ in
-                pinchStartScale = nil
-            }
-    }
-
     private func syncWithSelectedBodyPart() {
         let parts = currentSpecies.bodyParts
-        if let partId = selectedBodyPartId,
+        if let partId = router.selectedBodyPartId,
            let idx = parts.firstIndex(where: { $0.id == partId }) {
             selectedPartIndex = idx
             mode = .speciesParts
         } else {
             selectedPartIndex = 0
         }
-        resetView()
+        zoomScale = minZoom
     }
 
     public var body: some View {
         VStack(spacing: 0) {
             // MARK: - Top Header & Controls
             HStack {
-                Button(action: { activeTab = "anatomy" }) {
+                Button(action: { router.selectTab(.anatomy) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 13, weight: .bold))
@@ -187,9 +127,8 @@ public struct MicroWorldView: View {
 
                 // Tool toggles & Mode Switch
                 HStack(spacing: 12) {
-                    // Mode Switch Pills
                     HStack(spacing: 4) {
-                        Button(action: { mode = .speciesParts; resetView() }) {
+                        Button(action: { mode = .speciesParts; zoomScale = minZoom }) {
                             Text("当前动物部位")
                                 .font(.system(size: 11, weight: mode == .speciesParts ? .bold : .medium))
                                 .foregroundColor(mode == .speciesParts ? Color.darkEmeraldBg : Color.textMuted)
@@ -199,7 +138,7 @@ public struct MicroWorldView: View {
                                 .clipShape(Capsule())
                         }
 
-                        Button(action: { mode = .classic; resetView() }) {
+                        Button(action: { mode = .classic; zoomScale = minZoom }) {
                             Text("通用切片")
                                 .font(.system(size: 11, weight: mode == .classic ? .bold : .medium))
                                 .foregroundColor(mode == .classic ? Color.darkEmeraldBg : Color.textMuted)
@@ -214,21 +153,20 @@ public struct MicroWorldView: View {
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(Color.darkEmeraldBorder, lineWidth: 1))
 
-                    // Grid Toggle
                     Button(action: { showGrid.toggle() }) {
                         Image(systemName: showGrid ? "grid.circle.fill" : "grid.circle")
                             .font(.system(size: 16))
                             .foregroundColor(showGrid ? Color.biolumMint : Color.textMuted)
                     }
+                    .accessibilityLabel(showGrid ? "隐藏标尺网格" : "显示标尺网格")
 
-                    // Invert Toggle
                     Button(action: { isInverted.toggle() }) {
                         Image(systemName: isInverted ? "circle.righthalf.filled.inverse" : "circle.righthalf.filled")
                             .font(.system(size: 16))
                             .foregroundColor(isInverted ? Color.amberGold : Color.textMuted)
                     }
+                    .accessibilityLabel(isInverted ? "关闭反色滤镜" : "开启反色滤镜")
 
-                    // Audio
                     Button(action: {
                         let token = "micro-\(activeTitleZh)"
                         if audioService.isActive(token: token) {
@@ -241,6 +179,7 @@ public struct MicroWorldView: View {
                             .font(.system(size: 16))
                             .foregroundColor(Color.biolumMint)
                     }
+                    .accessibilityLabel("语音朗读切片解说")
                 }
             }
             .padding(.horizontal, 24)
@@ -249,79 +188,15 @@ public struct MicroWorldView: View {
 
             Divider().background(Color.darkEmeraldBorder)
 
-            // MARK: - Center Viewport with Zoom & Grid
+            // MARK: - Center Viewport with Extracted MicroscopeCanvasView
             ZStack(alignment: .bottom) {
-                // Microscope Specimen View (pinch to zoom, drag to pan, double-tap to reset)
-                GeometryReader { geo in
-                    ZStack {
-                        Color.black
-
-                        Group {
-                            if isInverted {
-                                SpecimenImageView(activeImage, contentMode: .fill)
-                                    .colorInvert()
-                            } else {
-                                SpecimenImageView(activeImage, contentMode: .fill)
-                            }
-                        }
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .clipped()
-                        .scaleEffect(CGFloat(zoomScale))
-                        .offset(panOffset)
-                        .animation(.easeOut(duration: 0.12), value: zoomScale)
-
-                        // Reticle & Grid Overlay (fixed to the eyepiece, like a real reticle)
-                        if showGrid {
-                            Path { path in
-                                let w = geo.size.width
-                                let h = geo.size.height
-
-                                // Center crosshair
-                                path.move(to: CGPoint(x: w / 2, y: 0))
-                                path.addLine(to: CGPoint(x: w / 2, y: h))
-                                path.move(to: CGPoint(x: 0, y: h / 2))
-                                path.addLine(to: CGPoint(x: w, y: h / 2))
-
-                                // Grid lines
-                                let step: CGFloat = 80
-                                var x = step
-                                while x < w {
-                                    path.move(to: CGPoint(x: x, y: 0))
-                                    path.addLine(to: CGPoint(x: x, y: h))
-                                    x += step
-                                }
-                                var y = step
-                                while y < h {
-                                    path.move(to: CGPoint(x: 0, y: y))
-                                    path.addLine(to: CGPoint(x: w, y: y))
-                                    y += step
-                                }
-                            }
-                            .stroke(Color.biolumMint.opacity(0.15), lineWidth: 0.8)
-                            .allowsHitTesting(false)
-
-                            Circle()
-                                .stroke(Color.biolumMint.opacity(0.4), lineWidth: 1.5)
-                                .frame(width: 140, height: 140)
-                                .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                                .allowsHitTesting(false)
-                        }
-                    }
-                    .frame(width: geo.size.width, height: geo.size.height)
-                    .contentShape(Rectangle())
-                    .gesture(panGesture)
-                    .simultaneousGesture(pinchGesture)
-                    .onTapGesture(count: 2) {
-                        withAnimation(.easeOut(duration: 0.2)) { resetView() }
-                    }
-                    .onAppear { viewportSize = geo.size }
-                    .onChange(of: geo.size) { newSize in viewportSize = newSize }
-                }
-                .clipped()
-                .cornerRadius(24)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.darkEmeraldBorder, lineWidth: 1.5)
+                MicroscopeCanvasView(
+                    imagePath: activeImage,
+                    showGrid: showGrid,
+                    isInverted: isInverted,
+                    minZoom: minZoom,
+                    maxZoom: maxZoom,
+                    zoomScale: $zoomScale
                 )
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
@@ -338,7 +213,6 @@ public struct MicroWorldView: View {
                             .foregroundColor(Color.biolumMint)
                     }
 
-                    // Zoom Slider
                     Slider(value: $zoomScale, in: minZoom...maxZoom, step: 0.1)
                         .tint(Color.biolumMint)
 
@@ -363,9 +237,8 @@ public struct MicroWorldView: View {
                 .padding(.bottom, 24)
             }
 
-            // MARK: - Bottom Specimen Carousel & Details (Synchronized!)
+            // MARK: - Bottom Specimen Carousel & Details
             VStack(alignment: .leading, spacing: 10) {
-                // Info Bar for Current Specimen
                 HStack(alignment: .firstTextBaseline) {
                     Text(activeDescription)
                         .font(.system(size: 12))
@@ -391,87 +264,38 @@ public struct MicroWorldView: View {
                     }
                 }
 
-                // Specimen Horizontal Carousel
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         if mode == .speciesParts {
-                            // Synchronized Animal Body Parts
                             ForEach(0..<currentSpecies.bodyParts.count, id: \.self) { idx in
                                 let part = currentSpecies.bodyParts[idx]
-                                let isSelected = (selectedPartIndex == idx)
-
-                                Button(action: {
+                                specimenCard(
+                                    image: part.macroImage,
+                                    title: part.nameZh,
+                                    subtitle: "400× 显微切片",
+                                    isSelected: selectedPartIndex == idx
+                                ) {
                                     withAnimation(.spring()) {
                                         selectedPartIndex = idx
-                                        selectedBodyPartId = part.id
-                                        resetView()
+                                        router.selectedBodyPartId = part.id
+                                        zoomScale = minZoom
                                     }
-                                }) {
-                                    HStack(spacing: 10) {
-                                        SpecimenImageView(part.macroImage)
-                                            .frame(width: 48, height: 48)
-                                            .cornerRadius(10)
-
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(part.nameZh)
-                                                .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(isSelected ? Color.textLight : Color.textMuted)
-                                            Text("400× 显微切片")
-                                                .font(.system(size: 10, weight: .semibold))
-                                                .foregroundColor(Color.biolumMint)
-                                        }
-
-                                        Spacer()
-                                    }
-                                    .padding(8)
-                                    .frame(width: 170)
-                                    .background(isSelected ? Color.darkEmeraldCard : Color.darkEmeraldSurface)
-                                    .cornerRadius(14)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(isSelected ? Color.biolumMint : Color.darkEmeraldBorder, lineWidth: isSelected ? 1.5 : 1)
-                                    )
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         } else {
-                            // Classic Generic Specimens
                             ForEach(0..<classicSpecimens.count, id: \.self) { idx in
                                 let item = classicSpecimens[idx]
-                                let isSelected = (selectedClassicIndex == idx)
-
-                                Button(action: {
+                                specimenCard(
+                                    image: item.image,
+                                    title: item.titleZh,
+                                    subtitle: item.magnification,
+                                    isSelected: selectedClassicIndex == idx
+                                ) {
                                     withAnimation(.spring()) {
                                         selectedClassicIndex = idx
-                                        resetView()
+                                        zoomScale = minZoom
                                     }
-                                }) {
-                                    HStack(spacing: 10) {
-                                        SpecimenImageView(item.image)
-                                            .frame(width: 48, height: 48)
-                                            .cornerRadius(10)
-
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(item.titleZh)
-                                                .font(.system(size: 12, weight: .bold))
-                                                .foregroundColor(isSelected ? Color.textLight : Color.textMuted)
-                                            Text(item.magnification)
-                                                .font(.system(size: 10, weight: .semibold))
-                                                .foregroundColor(Color.biolumMint)
-                                        }
-
-                                        Spacer()
-                                    }
-                                    .padding(8)
-                                    .frame(width: 170)
-                                    .background(isSelected ? Color.darkEmeraldCard : Color.darkEmeraldSurface)
-                                    .cornerRadius(14)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(isSelected ? Color.biolumMint : Color.darkEmeraldBorder, lineWidth: isSelected ? 1.5 : 1)
-                                    )
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
@@ -484,23 +308,50 @@ public struct MicroWorldView: View {
         .onAppear {
             syncWithSelectedBodyPart()
         }
-        .onChange(of: selectedBodyPartId) { _ in
+        .onChange(of: router.selectedBodyPartId) { _, _ in
             syncWithSelectedBodyPart()
         }
-        .onChange(of: zoomScale) { newScale in
-            if newScale <= minZoom + 0.001 {
-                panOffset = .zero
-                lastPanOffset = .zero
-            } else {
-                panOffset = clampedOffset(panOffset, scale: newScale)
-                lastPanOffset = panOffset
-            }
-        }
-        .onChange(of: activeImage) { _ in
+        .onChange(of: activeImage) { _, _ in
             audioService.stop()
         }
-        .onChange(of: selectedSpeciesId) { _ in
+        .onChange(of: router.selectedSpeciesId) { _, _ in
             syncWithSelectedBodyPart()
         }
+    }
+
+    private func specimenCard(
+        image: String,
+        title: String,
+        subtitle: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                SpecimenImageView(image)
+                    .frame(width: 48, height: 48)
+                    .cornerRadius(10)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(isSelected ? Color.textLight : Color.textMuted)
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(Color.biolumMint)
+                }
+
+                Spacer()
+            }
+            .padding(8)
+            .frame(width: 170)
+            .background(isSelected ? Color.darkEmeraldCard : Color.darkEmeraldSurface)
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isSelected ? Color.biolumMint : Color.darkEmeraldBorder, lineWidth: isSelected ? 1.5 : 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }

@@ -2,16 +2,7 @@ import SwiftUI
 
 public struct MainLayoutView: View {
     @EnvironmentObject private var appState: AppState
-
-    @State private var activeTab: String = "dashboard"
-    @State private var selectedSpeciesId: String = "blue-morpho"
-    @State private var selectedBodyPartId: String? = nil
-    @State private var searchText: String = ""
-
-    // Modals
-    @State private var showPayModal: Bool = false
-    @State private var showUnlockModal: Bool = false
-    @State private var unlockedSpeciesId: String = "blue-morpho"
+    @EnvironmentObject private var router: AppRouter
 
     public init() {}
 
@@ -29,9 +20,9 @@ public struct MainLayoutView: View {
                     // MARK: - Right Detail Area
                     VStack(spacing: 0) {
                         TopHeaderBar(
-                            searchText: $searchText,
+                            searchText: $router.searchText,
                             userProfile: appState.userProfile,
-                            onOpenProfile: { activeTab = "profile" }
+                            onOpenProfile: { router.selectTab(.profile) }
                         )
 
                         Divider().background(Color.darkEmeraldBorder)
@@ -39,14 +30,12 @@ public struct MainLayoutView: View {
                         screenContent
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .overlay(alignment: .topLeading) {
-                                if !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                                if !router.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
                                     SearchResultsView(
-                                        query: searchText,
+                                        query: router.searchText,
                                         isUnlocked: { appState.isUnlocked($0) },
                                         onSelect: { sp in
-                                            selectedSpeciesId = sp.id
-                                            activeTab = "species"
-                                            searchText = ""
+                                            router.openSpecies(sp.id)
                                         }
                                     )
                                     .padding(.leading, 24)
@@ -57,29 +46,28 @@ public struct MainLayoutView: View {
                 }
 
                 // MARK: - Global Modals
-                if showPayModal {
-                    PayQRModalView(isPresented: $showPayModal)
+                if router.showPayModal {
+                    PayQRModalView(isPresented: $router.showPayModal)
                         .transition(.opacity)
                 }
 
-                if showUnlockModal {
+                if router.showUnlockModal {
                     UnlockCelebrationView(
-                        isPresented: $showUnlockModal,
-                        species: SpeciesDataStore.getSpecies(by: unlockedSpeciesId),
+                        isPresented: $router.showUnlockModal,
+                        species: SpeciesDataStore.getSpecies(by: router.unlockedSpeciesId),
                         onNavigateToAnatomy: {
-                            selectedSpeciesId = unlockedSpeciesId
-                            activeTab = "anatomy"
+                            router.openAnatomy(for: router.unlockedSpeciesId)
                         }
                     )
                     .transition(.opacity)
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: activeTab)
-        .animation(.easeInOut(duration: 0.25), value: showPayModal)
-        .animation(.easeInOut(duration: 0.25), value: showUnlockModal)
+        .animation(.easeInOut(duration: 0.2), value: router.activeTab)
+        .animation(.easeInOut(duration: 0.25), value: router.showPayModal)
+        .animation(.easeInOut(duration: 0.25), value: router.showUnlockModal)
         // Narration must not keep playing after the user leaves the page it belongs to.
-        .onChange(of: activeTab) { _ in
+        .onChange(of: router.activeTab) { _, _ in
             AudioService.shared.stop()
         }
     }
@@ -88,48 +76,30 @@ public struct MainLayoutView: View {
 
     @ViewBuilder
     private var screenContent: some View {
-        switch activeTab {
-        case "species":
-            SpeciesDetailView(
-                selectedSpeciesId: $selectedSpeciesId,
-                activeTab: $activeTab
-            )
-        case "anatomy":
-            AnatomyStageView(
-                selectedSpeciesId: $selectedSpeciesId,
-                selectedBodyPartId: $selectedBodyPartId,
-                activeTab: $activeTab
-            )
-        case "micro":
-            MicroWorldView(
-                selectedSpeciesId: $selectedSpeciesId,
-                selectedBodyPartId: $selectedBodyPartId,
-                activeTab: $activeTab
-            )
-        case "codex":
+        switch router.activeTab {
+        case .dashboard:
+            DashboardView()
+        case .species:
+            SpeciesDetailView()
+        case .anatomy:
+            AnatomyStageView()
+        case .micro:
+            MicroWorldView()
+        case .codex:
             CodexView(
-                activeTab: $activeTab,
-                selectedSpeciesId: $selectedSpeciesId,
                 onUnlockSpecies: { id in
                     if appState.unlock(id) {
-                        unlockedSpeciesId = id
-                        showUnlockModal = true
+                        router.presentUnlockCelebration(for: id)
                     }
                 }
             )
-        case "membership":
+        case .membership:
             MembershipCenterView(
-                onOpenPayModal: { showPayModal = true }
+                onOpenPayModal: { router.openPayModal() }
             )
-        case "profile":
+        case .profile:
             ProfileView(
-                onOpenPayModal: { showPayModal = true }
-            )
-        default:
-            DashboardView(
-                activeTab: $activeTab,
-                selectedSpeciesId: $selectedSpeciesId,
-                onOpenPayModal: { showPayModal = true }
+                onOpenPayModal: { router.openPayModal() }
             )
         }
     }
@@ -176,22 +146,22 @@ public struct MainLayoutView: View {
 
             Divider().background(Color.darkEmeraldBorder)
 
-            // Navigation Menu Items
+            // Navigation Menu Items (driven by AppTab.allCases)
             VStack(spacing: 6) {
-                SidebarNavItem(id: "dashboard", title: "探索首页", icon: "house.fill", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "species", title: "物种档案", icon: "square.grid.2x2.fill", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "anatomy", title: "3D 解剖实验室", icon: "viewfinder", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "micro", title: "微观视界", icon: "scope", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "codex", title: "我的图鉴", icon: "book.closed.fill", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "membership", title: "会员中心", icon: "crown.fill", compact: compact, activeTab: $activeTab)
-                SidebarNavItem(id: "profile", title: "个人中心", icon: "person.crop.circle.fill", compact: compact, activeTab: $activeTab)
+                ForEach(AppTab.allCases) { tab in
+                    SidebarNavItem(
+                        tab: tab,
+                        compact: compact,
+                        activeTab: $router.activeTab
+                    )
+                }
             }
             .padding(.horizontal, compact ? 8 : 12)
 
             Spacer()
 
             // Bottom User Status Card
-            Button(action: { activeTab = "profile" }) {
+            Button(action: { router.selectTab(.profile) }) {
                 HStack(spacing: 10) {
                     ZStack {
                         Circle()
@@ -258,28 +228,26 @@ public struct MainLayoutView: View {
 }
 
 private struct SidebarNavItem: View {
-    let id: String
-    let title: String
-    let icon: String
+    let tab: AppTab
     let compact: Bool
-    @Binding var activeTab: String
+    @Binding var activeTab: AppTab
 
-    var isSelected: Bool {
-        activeTab == id
+    private var isSelected: Bool {
+        activeTab == tab
     }
 
     var body: some View {
         Button(action: {
-            activeTab = id
+            activeTab = tab
         }) {
             HStack(spacing: 12) {
-                Image(systemName: icon)
+                Image(systemName: tab.icon)
                     .font(.system(size: 15))
                     .foregroundColor(isSelected ? Color.darkEmeraldBg : Color.textMuted)
                     .frame(width: 22)
 
                 if !compact {
-                    Text(title)
+                    Text(tab.title)
                         .font(.system(size: 13, weight: isSelected ? .bold : .medium))
                         .foregroundColor(isSelected ? Color.darkEmeraldBg : Color.textLight)
 
@@ -301,6 +269,6 @@ private struct SidebarNavItem: View {
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel(title)
+        .accessibilityLabel(tab.title)
     }
 }

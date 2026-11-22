@@ -1,9 +1,9 @@
 // swift-tools-version: 5.9
 import PackageDescription
 
-// Note: the image/audio library is NOT bundled through SwiftPM (a resource path outside the target
-// directory is rejected). The Xcode project (StillFantasyiPad.xcodeproj) embeds `Resources/` as a folder
-// reference; at runtime missing images are fetched from the Cloudflare R2 bucket and cached on disk.
+// Note: the media library (`Resources/images`, `Resources/audio`) is embedded as a folder reference
+// in `StillFantasyiPad.xcodeproj` and falls back to Cloudflare R2 at runtime.
+// Structured species metadata (`Data/species.json`) is bundled directly in both SwiftPM and Xcode.
 let package = Package(
     name: "StillFantasyiPad",
     platforms: [
@@ -19,7 +19,15 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "StillFantasyiPad",
-            path: "Sources/StillFantasyiPad"
+            path: "Sources/StillFantasyiPad",
+            resources: [
+                .copy("Data/species.json")
+            ]
+        ),
+        .testTarget(
+            name: "StillFantasyiPadTests",
+            dependencies: ["StillFantasyiPad"],
+            path: "Tests/StillFantasyiPadTests"
         )
     ]
 )

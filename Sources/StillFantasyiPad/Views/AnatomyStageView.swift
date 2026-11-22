@@ -1,20 +1,14 @@
 import SwiftUI
 
 public struct AnatomyStageView: View {
-    @Binding var selectedSpeciesId: String
-    @Binding var selectedBodyPartId: String?
-    @Binding var activeTab: String
+    @EnvironmentObject private var router: AppRouter
     @State private var selectedPartIndex: Int = 0
     @ObservedObject private var audioService = AudioService.shared
 
-    public init(selectedSpeciesId: Binding<String>, selectedBodyPartId: Binding<String?>, activeTab: Binding<String>) {
-        self._selectedSpeciesId = selectedSpeciesId
-        self._selectedBodyPartId = selectedBodyPartId
-        self._activeTab = activeTab
-    }
+    public init() {}
 
     private var currentSpecies: Species {
-        SpeciesDataStore.getSpecies(by: selectedSpeciesId)
+        SpeciesDataStore.getSpecies(by: router.selectedSpeciesId)
     }
 
     private var availableSpeciesWithParts: [Species] {
@@ -25,7 +19,7 @@ public struct AnatomyStageView: View {
         VStack(spacing: 0) {
             // MARK: - Top Nav Bar with Animal Selector
             HStack {
-                Button(action: { activeTab = "species" }) {
+                Button(action: { router.selectTab(.species) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 13, weight: .bold))
@@ -47,7 +41,6 @@ public struct AnatomyStageView: View {
 
                 Spacer()
 
-                // Voiceover button
                 if !currentSpecies.bodyParts.isEmpty {
                     let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
                     let token = "anatomy-\(part.id)"
@@ -84,12 +77,12 @@ public struct AnatomyStageView: View {
                         .foregroundColor(Color.textMuted)
 
                     ForEach(availableSpeciesWithParts) { sp in
-                        let isSelected = (sp.id == selectedSpeciesId)
+                        let isSelected = (sp.id == router.selectedSpeciesId)
                         Button(action: {
                             withAnimation(.spring()) {
-                                selectedSpeciesId = sp.id
+                                router.selectedSpeciesId = sp.id
                                 selectedPartIndex = 0
-                                selectedBodyPartId = sp.bodyParts.first?.id
+                                router.selectedBodyPartId = sp.bodyParts.first?.id
                                 audioService.stop()
                             }
                         }) {
@@ -122,16 +115,50 @@ public struct AnatomyStageView: View {
 
             // MARK: - Main Content: Canvas on Left, Inspector on Right
             HStack(spacing: 20) {
-                // Left Specimen Stage
+                // Left Specimen Stage with safe-clamped interactive hotspot pins
                 VStack(spacing: 16) {
-                    SpecimenImageView(currentSpecies.coverImage, contentMode: .fit)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.darkEmeraldSurface)
-                        .cornerRadius(24)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color.darkEmeraldBorder, lineWidth: 1.5)
-                        )
+                    GeometryReader { geo in
+                        ZStack {
+                            SpecimenImageView(currentSpecies.coverImage, contentMode: .fit)
+                                .frame(width: geo.size.width, height: geo.size.height)
+
+                            ForEach(Array(currentSpecies.bodyParts.enumerated()), id: \.element.id) { idx, part in
+                                let isSelected = (idx == selectedPartIndex)
+                                let pos = hotspotPosition(for: part, in: geo.size)
+                                Button(action: {
+                                    withAnimation(.spring()) {
+                                        selectedPartIndex = idx
+                                        router.selectedBodyPartId = part.id
+                                    }
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(isSelected ? Color.biolumMint.opacity(0.28) : Color.darkEmeraldBg.opacity(0.5))
+                                            .frame(width: 44, height: 44)
+                                        Circle()
+                                            .fill(isSelected ? Color.biolumMint : Color.darkEmeraldCard)
+                                            .frame(width: 26, height: 26)
+                                            .overlay(
+                                                Circle().stroke(isSelected ? Color.white : Color.biolumMint, lineWidth: 1.5)
+                                            )
+                                        Text("\(part.number)")
+                                            .font(.system(size: 11, weight: .black))
+                                            .foregroundColor(isSelected ? Color.darkEmeraldBg : Color.textLight)
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .position(pos)
+                                .accessibilityLabel("\(part.nameZh) 解剖热点")
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.darkEmeraldSurface)
+                    .cornerRadius(24)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color.darkEmeraldBorder, lineWidth: 1.5)
+                    )
 
                     // Bottom Teaser: Micro World
                     HStack(spacing: 16) {
@@ -158,11 +185,10 @@ public struct AnatomyStageView: View {
                         Spacer()
 
                         Button(action: {
-                            if !currentSpecies.bodyParts.isEmpty {
-                                let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
-                                selectedBodyPartId = part.id
-                            }
-                            activeTab = "micro"
+                            let partId: String? = currentSpecies.bodyParts.isEmpty
+                                ? nil
+                                : currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)].id
+                            router.openMicro(partId: partId)
                         }) {
                             HStack(spacing: 4) {
                                 Text("进入超微观视界")
@@ -207,25 +233,24 @@ public struct AnatomyStageView: View {
                                 Button(action: {
                                     withAnimation(.spring()) {
                                         selectedPartIndex = idx
-                                        selectedBodyPartId = part.id
+                                        router.selectedBodyPartId = part.id
                                     }
                                 }) {
                                     Text(part.nameZh)
                                         .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(selectedPartIndex == idx ? Color.darkEmeraldBg : Color.textMuted)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(selectedPartIndex == idx ? Color.biolumMint : Color.darkEmeraldCard)
-                                    .clipShape(Capsule())
-                                    .overlay(
-                                        Capsule().stroke(selectedPartIndex == idx ? Color.clear : Color.darkEmeraldBorder, lineWidth: 1)
-                                    )
+                                        .foregroundColor(selectedPartIndex == idx ? Color.darkEmeraldBg : Color.textMuted)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(selectedPartIndex == idx ? Color.biolumMint : Color.darkEmeraldCard)
+                                        .clipShape(Capsule())
+                                        .overlay(
+                                            Capsule().stroke(selectedPartIndex == idx ? Color.clear : Color.darkEmeraldBorder, lineWidth: 1)
+                                        )
                                 }
                             }
                         }
                     }
 
-                    // Detailed Card of Active Part
                     if !currentSpecies.bodyParts.isEmpty {
                         let currentPart = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
                         VStack(alignment: .leading, spacing: 14) {
@@ -315,24 +340,38 @@ public struct AnatomyStageView: View {
         .onAppear {
             syncActivePart()
         }
-        .onChange(of: selectedSpeciesId) { _ in
+        .onChange(of: router.selectedSpeciesId) { _, _ in
             syncActivePart()
         }
-        .onChange(of: selectedPartIndex) { _ in
+        .onChange(of: selectedPartIndex) { _, _ in
             audioService.stop()
         }
-        .onChange(of: selectedBodyPartId) { _ in
+        .onChange(of: router.selectedBodyPartId) { _, _ in
             syncActivePart()
         }
     }
 
+    /// Maps 0...100 hotspot coordinates safely inside the stage with 28pt edge padding
+    /// so 44pt kid-friendly tap targets never clip on Split View or narrow windows.
+    private func hotspotPosition(for part: BodyPart, in size: CGSize) -> CGPoint {
+        let padding: CGFloat = 28
+        let usableW = max(size.width - padding * 2, 1)
+        let usableH = max(size.height - padding * 2, 1)
+        let nx = min(max(part.hotspotX / 100.0, 0.0), 1.0)
+        let ny = min(max(part.hotspotY / 100.0, 0.0), 1.0)
+        return CGPoint(
+            x: padding + usableW * CGFloat(nx),
+            y: padding + usableH * CGFloat(ny)
+        )
+    }
+
     private func syncActivePart() {
-        if let partId = selectedBodyPartId,
+        if let partId = router.selectedBodyPartId,
            let idx = currentSpecies.bodyParts.firstIndex(where: { $0.id == partId }) {
             selectedPartIndex = idx
         } else {
             selectedPartIndex = 0
-            selectedBodyPartId = currentSpecies.bodyParts.first?.id
+            router.selectedBodyPartId = currentSpecies.bodyParts.first?.id
         }
     }
 }

@@ -4,6 +4,10 @@ public struct MembershipCenterView: View {
     @EnvironmentObject private var appState: AppState
     let onOpenPayModal: () -> Void
 
+    private let privilegeColumns = [
+        GridItem(.adaptive(minimum: 180), spacing: 14)
+    ]
+
     public init(onOpenPayModal: @escaping () -> Void) {
         self.onOpenPayModal = onOpenPayModal
     }
@@ -29,7 +33,7 @@ public struct MembershipCenterView: View {
                                 .frame(width: 58, height: 58)
                                 .background(Circle().fill(Color.darkEmeraldSurface))
 
-                            Text("Lv.8")
+                            Text("Lv.\(userProfile.level)")
                                 .font(.system(size: 10, weight: .black))
                                 .foregroundColor(Color.darkEmeraldBg)
                                 .padding(.horizontal, 6)
@@ -89,7 +93,6 @@ public struct MembershipCenterView: View {
 
                 // MARK: - VIP Hero Card
                 ZStack(alignment: .bottomLeading) {
-                    // Background Image / Gradient
                     LinearGradient(
                         colors: [
                             Color(hex: "#143023"),
@@ -153,8 +156,8 @@ public struct MembershipCenterView: View {
                             }
                         }
 
-                        // 4 Privileges Bento
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                        // 4 Privileges Adaptive Grid
+                        LazyVGrid(columns: privilegeColumns, spacing: 14) {
                             PrivilegeCard(icon: "cube.transparent", title: "3D 全景解剖", desc: "\(SpeciesDataStore.sampleSpecies.count) 种生物多层肌理与仿生结构无死角旋转")
                             PrivilegeCard(icon: "waveform.badge.magnifyingglass", title: "1,600+ 原声音频", desc: "高保真雨林生境原声与多语种双语导览讲解")
                             PrivilegeCard(icon: "scope", title: "800× 纳米显微", desc: "电子显微镜级别光子晶体与超疏水表面探秘")

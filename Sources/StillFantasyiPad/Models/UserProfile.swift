@@ -63,6 +63,7 @@ public final class AppState: ObservableObject {
         static let unlocked = "sf.unlockedIds"
         static let favorites = "sf.favoriteIds"
         static let lastCheckIn = "sf.lastCheckInDay"
+        static let lastCheckInDate = "sf.lastCheckInDate"
         static let streak = "sf.streak"
         static let xp = "sf.xp"
         static let level = "sf.level"
@@ -73,16 +74,24 @@ public final class AppState: ObservableObject {
     public static let unlockReward = 50
 
     private let defaults: UserDefaults
+    private let calendar: Calendar
+    private let now: () -> Date
 
     @Published public private(set) var unlockedIds: Set<String>
     @Published public private(set) var favoriteIds: Set<String>
-    @Published public private(set) var lastCheckInDay: String?
+    @Published public private(set) var lastCheckInDate: Date?
     @Published public private(set) var streak: Int
     @Published public private(set) var xp: Int
     @Published public private(set) var level: Int
 
-    public init(defaults: UserDefaults = .standard) {
+    public init(
+        defaults: UserDefaults = .standard,
+        calendar: Calendar = .current,
+        now: @escaping () -> Date = Date.init
+    ) {
         self.defaults = defaults
+        self.calendar = calendar
+        self.now = now
         let all = SpeciesDataStore.sampleSpecies
 
         if let saved = defaults.array(forKey: Key.unlocked) as? [String] {
@@ -95,10 +104,30 @@ public final class AppState: ObservableObject {
         } else {
             favoriteIds = Set(all.filter { $0.isFavorite }.map { $0.id })
         }
-        lastCheckInDay = defaults.string(forKey: Key.lastCheckIn)
-        streak = defaults.object(forKey: Key.streak) as? Int ?? 12
-        xp = defaults.object(forKey: Key.xp) as? Int ?? 3000
-        level = defaults.object(forKey: Key.level) as? Int ?? 8
+
+        if let storedDate = defaults.object(forKey: Key.lastCheckInDate) as? Date {
+            lastCheckInDate = storedDate
+        } else if let legacyDay = defaults.string(forKey: Key.lastCheckIn),
+                  let parsed = Self.parseLegacyDay(legacyDay, calendar: calendar) {
+            lastCheckInDate = parsed
+            defaults.set(parsed, forKey: Key.lastCheckInDate)
+        } else {
+            lastCheckInDate = nil
+        }
+
+        #if DEBUG
+        let defaultStreak = 12
+        let defaultXp = 3000
+        let defaultLevel = 8
+        #else
+        let defaultStreak = 0
+        let defaultXp = 0
+        let defaultLevel = 1
+        #endif
+
+        streak = defaults.object(forKey: Key.streak) as? Int ?? defaultStreak
+        xp = defaults.object(forKey: Key.xp) as? Int ?? defaultXp
+        level = defaults.object(forKey: Key.level) as? Int ?? defaultLevel
     }
 
     // MARK: - Species progress
@@ -149,35 +178,47 @@ public final class AppState: ObservableObject {
 
     // MARK: - Daily check-in
 
-    private static func dayString(_ date: Date) -> String {
+    private static func parseLegacyDay(_ day: String, calendar: Calendar) -> Date? {
         let f = DateFormatter()
-        f.calendar = Calendar.current
+        f.calendar = calendar
         f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = calendar.timeZone
         f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: date)
+        return f.date(from: day)
     }
 
     public var isCheckedInToday: Bool {
-        lastCheckInDay == Self.dayString(Date())
+        guard let last = lastCheckInDate else { return false }
+        return calendar.isDate(last, inSameDayAs: now())
     }
 
     public func checkIn() {
+        let today = now()
         guard !isCheckedInToday else { return }
-        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
-        if lastCheckInDay == nil || lastCheckInDay == Self.dayString(yesterday) {
-            streak += 1
+
+        if let last = lastCheckInDate {
+            let startOfLast = calendar.startOfDay(for: last)
+            let startOfToday = calendar.startOfDay(for: today)
+            let daysBetween = calendar.dateComponents([.day], from: startOfLast, to: startOfToday).day ?? 0
+            if daysBetween == 1 {
+                streak += 1
+            } else {
+                streak = 1
+            }
         } else {
-            streak = 1
+            streak += 1
         }
-        lastCheckInDay = Self.dayString(Date())
-        defaults.set(lastCheckInDay, forKey: Key.lastCheckIn)
+
+        lastCheckInDate = today
+        defaults.set(today, forKey: Key.lastCheckInDate)
         defaults.set(streak, forKey: Key.streak)
         addXp(Self.checkInReward)
     }
 
     // MARK: - XP
 
-    private func addXp(_ amount: Int) {
+    public func addXp(_ amount: Int) {
+        guard amount > 0 else { return }
         xp += amount
         while xp >= Self.maxXp {
             xp -= Self.maxXp

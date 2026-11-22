@@ -28,7 +28,7 @@ public struct ProfileView: View {
                             .frame(width: 72, height: 72)
                             .background(Circle().fill(Color.darkEmeraldSurface))
 
-                        Text("Lv.8")
+                        Text("Lv.\(userProfile.level)")
                             .font(.system(size: 11, weight: .black))
                             .foregroundColor(Color.darkEmeraldBg)
                             .padding(.horizontal, 6)

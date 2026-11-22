@@ -8,10 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		1CAEC16E0904D20F6EB89AE1 /* StillFantasyiPadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */; };
+		77B55A318002B4C85DC2489E /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 069BEC05A131A6EB598DFFD0 /* AppRouter.swift */; };
 		AEA8ADEE81A6F937CC613FF1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A4F5E85C441911E2A7E6189 /* Category.swift */; };
 		01E674D2526EA99BC4ACDF1C /* MicroSpecimen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */; };
 		EE3B06F5F33DEBC75C2EF27F /* Species.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDFB04B38A2AFB705F7666B /* Species.swift */; };
 		02671BE954167D4EA207409D /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0590F59488151DA8643427B7 /* UserProfile.swift */; };
+		D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F2918F642BF619DA24F14F /* AudioService.swift */; };
 		75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4D96791B1688A70F46887C /* ThemeColors.swift */; };
 		B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */; };
 		5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0790691964E91FB0C7AA1C5 /* CodexView.swift */; };
@@ -22,19 +24,24 @@
 		3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B74927EE3E4223017A75AB /* ProfileView.swift */; };
 		808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */; };
 		D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */; };
+		8AFC3B97ADFC600CC7CF1451 /* BentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654D9974A7D7A1919AF6B7CC /* BentoCard.swift */; };
+		E79DB12A9B099ECD79C8C524 /* FilterPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EDEAD14B09CBED6C9FCB9A2 /* FilterPill.swift */; };
+		6FB58176F136FEE4F9FC97B1 /* MicroscopeCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA737FF9F371AA589515E73E /* MicroscopeCanvasView.swift */; };
 		1E9477E2D08F03CF91B57FBC /* PayQRModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E813BDD203A8E382FCF98F /* PayQRModalView.swift */; };
 		07EBD3D3178D636434282CB2 /* SpecimenImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */; };
 		E9C829744EAE864117000A73 /* TopHeaderBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D5FD104138997B7A4794AD /* TopHeaderBar.swift */; };
-		D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F2918F642BF619DA24F14F /* AudioService.swift */; };
+		A32D4DBD3F604A201FA114ED /* species.json in Resources */ = {isa = PBXBuildFile; fileRef = 52CDD0DC68109B04602B744B /* species.json */; };
 		8E64AE1ED6ED7F0815460900 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = C579B4363699B268407E6A07 /* Resources */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/StillFantasyiPadApp.swift"; sourceTree = "<group>"; };
+		069BEC05A131A6EB598DFFD0 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/AppRouter.swift"; sourceTree = "<group>"; };
 		5A4F5E85C441911E2A7E6189 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/Category.swift"; sourceTree = "<group>"; };
 		36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/MicroSpecimen.swift"; sourceTree = "<group>"; };
 		FBDFB04B38A2AFB705F7666B /* Species.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/Species.swift"; sourceTree = "<group>"; };
 		0590F59488151DA8643427B7 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/UserProfile.swift"; sourceTree = "<group>"; };
+		B3F2918F642BF619DA24F14F /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Services/AudioService.swift"; sourceTree = "<group>"; };
 		CF4D96791B1688A70F46887C /* ThemeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Theme/ThemeColors.swift"; sourceTree = "<group>"; };
 		863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/AnatomyStageView.swift"; sourceTree = "<group>"; };
 		E0790691964E91FB0C7AA1C5 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/CodexView.swift"; sourceTree = "<group>"; };
@@ -45,10 +52,13 @@
 		44B74927EE3E4223017A75AB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/ProfileView.swift"; sourceTree = "<group>"; };
 		7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/SpeciesDetailView.swift"; sourceTree = "<group>"; };
 		B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/UnlockCelebrationView.swift"; sourceTree = "<group>"; };
+		654D9974A7D7A1919AF6B7CC /* BentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/BentoCard.swift"; sourceTree = "<group>"; };
+		2EDEAD14B09CBED6C9FCB9A2 /* FilterPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/FilterPill.swift"; sourceTree = "<group>"; };
+		EA737FF9F371AA589515E73E /* MicroscopeCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/MicroscopeCanvasView.swift"; sourceTree = "<group>"; };
 		11E813BDD203A8E382FCF98F /* PayQRModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/PayQRModalView.swift"; sourceTree = "<group>"; };
 		ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/SpecimenImageView.swift"; sourceTree = "<group>"; };
 		40D5FD104138997B7A4794AD /* TopHeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/TopHeaderBar.swift"; sourceTree = "<group>"; };
-		B3F2918F642BF619DA24F14F /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Services/AudioService.swift"; sourceTree = "<group>"; };
+		52CDD0DC68109B04602B744B /* species.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "Sources/StillFantasyiPad/Data/species.json"; sourceTree = "<group>"; };
 		C579B4363699B268407E6A07 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "Resources"; sourceTree = "<group>"; };
 		73AD16181FDDB7427288C6BD /* StillFantasyiPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StillFantasyiPad.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -85,10 +95,12 @@
 			isa = PBXGroup;
 			children = (
 				DF9E88EBD0D9D2A1FAD253A9 /* StillFantasyiPadApp.swift */,
+				069BEC05A131A6EB598DFFD0 /* AppRouter.swift */,
 				5A4F5E85C441911E2A7E6189 /* Category.swift */,
 				36D5B8F26EA9171A5D966195 /* MicroSpecimen.swift */,
 				FBDFB04B38A2AFB705F7666B /* Species.swift */,
 				0590F59488151DA8643427B7 /* UserProfile.swift */,
+				B3F2918F642BF619DA24F14F /* AudioService.swift */,
 				CF4D96791B1688A70F46887C /* ThemeColors.swift */,
 				863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */,
 				E0790691964E91FB0C7AA1C5 /* CodexView.swift */,
@@ -99,10 +111,13 @@
 				44B74927EE3E4223017A75AB /* ProfileView.swift */,
 				7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */,
 				B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */,
+				654D9974A7D7A1919AF6B7CC /* BentoCard.swift */,
+				2EDEAD14B09CBED6C9FCB9A2 /* FilterPill.swift */,
+				EA737FF9F371AA589515E73E /* MicroscopeCanvasView.swift */,
 				11E813BDD203A8E382FCF98F /* PayQRModalView.swift */,
 				ECB8C36818DFD3A284BD8418 /* SpecimenImageView.swift */,
 				40D5FD104138997B7A4794AD /* TopHeaderBar.swift */,
-				B3F2918F642BF619DA24F14F /* AudioService.swift */,
+				52CDD0DC68109B04602B744B /* species.json */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -165,6 +180,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A32D4DBD3F604A201FA114ED /* species.json in Resources */,
+				8E64AE1ED6ED7F0815460900 /* Resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,10 +193,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				1CAEC16E0904D20F6EB89AE1 /* StillFantasyiPadApp.swift in Sources */,
+				77B55A318002B4C85DC2489E /* AppRouter.swift in Sources */,
 				AEA8ADEE81A6F937CC613FF1 /* Category.swift in Sources */,
 				01E674D2526EA99BC4ACDF1C /* MicroSpecimen.swift in Sources */,
 				EE3B06F5F33DEBC75C2EF27F /* Species.swift in Sources */,
 				02671BE954167D4EA207409D /* UserProfile.swift in Sources */,
+				D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */,
 				75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */,
 				B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */,
 				5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */,
@@ -190,10 +209,12 @@
 				3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */,
 				808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */,
 				D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */,
+				8AFC3B97ADFC600CC7CF1451 /* BentoCard.swift in Sources */,
+				E79DB12A9B099ECD79C8C524 /* FilterPill.swift in Sources */,
+				6FB58176F136FEE4F9FC97B1 /* MicroscopeCanvasView.swift in Sources */,
 				1E9477E2D08F03CF91B57FBC /* PayQRModalView.swift in Sources */,
 				07EBD3D3178D636434282CB2 /* SpecimenImageView.swift in Sources */,
 				E9C829744EAE864117000A73 /* TopHeaderBar.swift in Sources */,
-				D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,7 +290,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 2M24UZ8ZRQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
@@ -298,7 +318,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 2M24UZ8ZRQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
