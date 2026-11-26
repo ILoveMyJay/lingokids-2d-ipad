@@ -335,17 +335,17 @@ public struct DashboardView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("四大生态王国")
+                    Text("五大生态王国")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.textLight)
-                    Text("跨越昆虫、陆地、深海与天空的自然造物殿堂")
+                    Text("跨越昆虫、陆地、深海、天空与沙漠的自然造物殿堂")
                         .font(.system(size: 12))
                         .foregroundColor(Color.textMuted)
                 }
 
                 Spacer()
 
-                Button(action: { router.selectTab(.codex) }) {
+                Button(action: { router.openCodex(filter: .all) }) {
                     Text("打开物种图鉴")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(Color.biolumMint)
@@ -355,15 +355,7 @@ public struct DashboardView: View {
             LazyVGrid(columns: categoryColumns, spacing: 16) {
                 ForEach(CategoryDataStore.categories) { cat in
                     Button(action: {
-                        let representativeId: String
-                        switch cat.id {
-                        case "insects": representativeId = "rhinoceros-beetle"
-                        case "land": representativeId = "cheetah"
-                        case "ocean": representativeId = "green-sea-turtle"
-                        case "birds": representativeId = "peregrine-falcon"
-                        default: representativeId = "blue-morpho"
-                        }
-                        router.openSpecies(representativeId)
+                        router.openCodex(filter: CodexFilter(categoryId: cat.id))
                     }) {
                         VStack(alignment: .leading, spacing: 10) {
                             ZStack(alignment: .topTrailing) {

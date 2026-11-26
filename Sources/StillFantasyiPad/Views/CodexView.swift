@@ -1,28 +1,14 @@
 import SwiftUI
 
 public struct CodexView: View {
-    public enum CodexFilter: String, Equatable {
-        case all
-        case insects
-        case land
-        case ocean
-        case birds
-        case unlocked
-    }
-
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var router: AppRouter
-    let onUnlockSpecies: (String) -> Void
-
-    @State private var selectedFilter: CodexFilter = .all
 
     private let gridColumns = [
         GridItem(.adaptive(minimum: 220), spacing: 16)
     ]
 
-    public init(onUnlockSpecies: @escaping (String) -> Void) {
-        self.onUnlockSpecies = onUnlockSpecies
-    }
+    public init() {}
 
     private var allSpecies: [Species] {
         SpeciesDataStore.sampleSpecies
@@ -30,13 +16,13 @@ public struct CodexView: View {
 
     private var filteredSpecies: [Species] {
         allSpecies.filter { sp in
-            switch selectedFilter {
+            switch router.codexFilter {
             case .all:
                 return true
             case .unlocked:
                 return appState.isUnlocked(sp.id)
-            case .insects, .land, .ocean, .birds:
-                return sp.categoryId == selectedFilter.rawValue
+            case .insects, .land, .ocean, .birds, .desert:
+                return sp.categoryId == router.codexFilter.rawValue
             }
         }
     }
@@ -104,22 +90,26 @@ public struct CodexView: View {
                 // MARK: - Filter Pills
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        FilterPill(title: "全部 (\(appState.totalSpeciesCount))", value: CodexFilter.all, selection: $selectedFilter)
-                        FilterPill(title: "昆虫王国 (\(count(in: "insects")))", value: CodexFilter.insects, selection: $selectedFilter)
-                        FilterPill(title: "陆地探险 (\(count(in: "land")))", value: CodexFilter.land, selection: $selectedFilter)
-                        FilterPill(title: "深海奇境 (\(count(in: "ocean")))", value: CodexFilter.ocean, selection: $selectedFilter)
-                        FilterPill(title: "鸟类天地 (\(count(in: "birds")))", value: CodexFilter.birds, selection: $selectedFilter)
-                        FilterPill(title: "已解锁 (\(appState.unlockedCount))", value: CodexFilter.unlocked, selection: $selectedFilter)
+                        FilterPill(title: "全部 (\(appState.totalSpeciesCount))", value: CodexFilter.all, selection: $router.codexFilter)
+                        FilterPill(title: "昆虫王国 (\(count(in: "insects")))", value: CodexFilter.insects, selection: $router.codexFilter)
+                        FilterPill(title: "陆地探险 (\(count(in: "land")))", value: CodexFilter.land, selection: $router.codexFilter)
+                        FilterPill(title: "深海奇境 (\(count(in: "ocean")))", value: CodexFilter.ocean, selection: $router.codexFilter)
+                        FilterPill(title: "鸟类天地 (\(count(in: "birds")))", value: CodexFilter.birds, selection: $router.codexFilter)
+                        FilterPill(title: "沙漠秘境 (\(count(in: "desert")))", value: CodexFilter.desert, selection: $router.codexFilter)
+                        FilterPill(title: "已解锁 (\(appState.unlockedCount))", value: CodexFilter.unlocked, selection: $router.codexFilter)
                     }
                 }
 
                 // MARK: - Species Adaptive Grid
                 LazyVGrid(columns: gridColumns, spacing: 16) {
                     ForEach(filteredSpecies) { sp in
-                        if appState.isUnlocked(sp.id) {
-                            unlockedCard(for: sp)
-                        } else {
-                            lockedCard(for: sp)
+                        let unlocked = appState.isUnlocked(sp.id)
+                        SpeciesCardView(species: sp, isUnlocked: unlocked) {
+                            if unlocked {
+                                router.openSpecies(sp.id)
+                            } else if appState.unlock(sp.id) {
+                                router.presentUnlockCelebration(for: sp.id)
+                            }
                         }
                     }
                 }
@@ -127,129 +117,5 @@ public struct CodexView: View {
             .padding(24)
         }
         .background(Color.darkEmeraldBg)
-    }
-
-    private func unlockedCard(for sp: Species) -> some View {
-        Button(action: {
-            router.openSpecies(sp.id)
-        }) {
-            VStack(alignment: .leading, spacing: 10) {
-                ZStack(alignment: .topTrailing) {
-                    SpecimenImageView(sp.coverImage)
-                        .frame(height: 140)
-                        .frame(maxWidth: .infinity)
-                        .clipped()
-                        .cornerRadius(16)
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
-                        Text("已收录")
-                            .font(.system(size: 9, weight: .bold))
-                    }
-                    .foregroundColor(Color.darkEmeraldBg)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.biolumMint)
-                    .clipShape(Capsule())
-                    .padding(8)
-                }
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack {
-                        Text(sp.nameZh)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(Color.textLight)
-
-                        Spacer()
-
-                        HStack(spacing: 2) {
-                            ForEach(0..<sp.rarity, id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 8))
-                                    .foregroundColor(Color.amberGold)
-                            }
-                        }
-                    }
-
-                    Text(sp.scientificName)
-                        .font(.system(size: 10, weight: .medium))
-                        .italic()
-                        .foregroundColor(Color.biolumMint.opacity(0.8))
-
-                    Text(sp.overviewZh)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.textMuted)
-                        .lineLimit(2)
-                        .padding(.top, 2)
-                }
-            }
-            .padding(12)
-            .background(Color.darkEmeraldCard)
-            .cornerRadius(20)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.darkEmeraldBorder, lineWidth: 1)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    private func lockedCard(for sp: Species) -> some View {
-        Button(action: {
-            onUnlockSpecies(sp.id)
-        }) {
-            VStack(alignment: .leading, spacing: 10) {
-                ZStack {
-                    Color.darkEmeraldSurface
-                        .frame(height: 140)
-                        .frame(maxWidth: .infinity)
-                        .cornerRadius(16)
-
-                    VStack(spacing: 6) {
-                        Image(systemName: "lock.circle.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(Color.amberGold.opacity(0.8))
-
-                        Text("点击唤醒图鉴")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(Color.amberGold)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack {
-                        Text(sp.nameZh)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(Color.textLight.opacity(0.5))
-
-                        Spacer()
-
-                        Text("待解锁")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color.amberGold)
-                    }
-
-                    Text(sp.scientificName)
-                        .font(.system(size: 10))
-                        .italic()
-                        .foregroundColor(Color.textMuted.opacity(0.4))
-
-                    Text("完成生态考察探险任务后收录")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.textMuted.opacity(0.4))
-                        .lineLimit(2)
-                        .padding(.top, 2)
-                }
-            }
-            .padding(12)
-            .background(Color.darkEmeraldCard.opacity(0.6))
-            .cornerRadius(20)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.darkEmeraldBorderSubtle, lineWidth: 1)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }

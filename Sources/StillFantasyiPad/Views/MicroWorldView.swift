@@ -8,6 +8,7 @@ public struct MicroWorldView: View {
     @State private var zoomScale: Double = 1.0
     @State private var showGrid: Bool = true
     @State private var isInverted: Bool = false
+    @State private var isDescriptionExpanded: Bool = false
     @State private var mode: MicroMode = .speciesParts
     @ObservedObject private var audioService = AudioService.shared
 
@@ -252,11 +253,19 @@ public struct MicroWorldView: View {
 
             // MARK: - Bottom Specimen Carousel & Details
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(activeDescription)
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.textMuted)
-                        .lineLimit(1)
+                HStack(alignment: .top, spacing: 12) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isDescriptionExpanded.toggle()
+                        }
+                    }) {
+                        Text(activeDescription)
+                            .font(.system(size: 12))
+                            .foregroundColor(Color.textMuted)
+                            .lineLimit(isDescriptionExpanded ? nil : 2)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .buttonStyle(PlainButtonStyle())
 
                     Spacer()
 
@@ -268,10 +277,10 @@ public struct MicroWorldView: View {
                             Text(ff)
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(Color.goldLight)
-                                .lineLimit(1)
+                                .lineLimit(isDescriptionExpanded ? nil : 2)
                         }
                         .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
+                        .padding(.vertical, 4)
                         .background(Color.amberGold.opacity(0.12))
                         .clipShape(Capsule())
                     }

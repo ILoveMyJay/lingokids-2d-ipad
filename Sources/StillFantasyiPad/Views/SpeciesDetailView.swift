@@ -40,6 +40,9 @@ public struct SpeciesDetailView: View {
                 BentoCard(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期")
                 BentoCard(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源")
                 BentoCard(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
+                if let speed = currentSpecies.speed, !speed.isEmpty {
+                    BentoCard(icon: "wind", title: "运动速度", value: speed, desc: "自然环境最高移动速率")
+                }
                 BentoCard(icon: "sparkles", title: "学名归属", value: currentSpecies.scientificName, desc: "国际动植物命名法典分类")
                 BentoCard(icon: "shield.checkerboard", title: "解剖结构", value: "\(currentSpecies.bodyParts.count) 个核心结构", desc: "可在解剖实验室逐一查看各部位")
                 BentoCard(icon: "trophy.fill", title: "稀有度评级", value: "★ \(currentSpecies.rarity) 星级物种", desc: "生态价值与濒危参考指标")
@@ -189,11 +192,28 @@ public struct SpeciesDetailView: View {
                                         .foregroundColor(Color.amberGold)
                                 }
                             }
+
+                            if let nickname = currentSpecies.nicknameZh, !nickname.isEmpty {
+                                Text(nickname)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(Color.goldLight)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color.amberGold.opacity(0.18))
+                                    .clipShape(Capsule())
+                            }
                         }
 
-                        Text(currentSpecies.nameZh)
-                            .font(.system(size: 44, weight: .black))
-                            .foregroundColor(Color.textLight)
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(currentSpecies.nameZh)
+                                .font(.system(size: 44, weight: .black))
+                                .foregroundColor(Color.textLight)
+                            if let pinyin = currentSpecies.pinyin, !pinyin.isEmpty {
+                                Text(pinyin)
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(Color.textMuted)
+                            }
+                        }
 
                         Text("\(currentSpecies.nameEn) · \(currentSpecies.scientificName)")
                             .font(.system(size: 15, weight: .medium))
@@ -308,12 +328,12 @@ public struct SpeciesDetailView: View {
                         )
                     case 2:
                         SubInfoPanel(
-                            title: "\(currentSpecies.nameZh) · 生命周期与体型",
+                            title: "\(currentSpecies.nameZh) · 生命周期与双语档案",
                             cards: [
                                 SubInfoCardData(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期"),
                                 SubInfoCardData(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
                             ],
-                            summary: currentSpecies.overviewEn
+                            summary: "\(currentSpecies.overviewZh)\n\n\(currentSpecies.overviewEn)"
                         )
                     default:
                         bentoGrid
@@ -358,6 +378,24 @@ public struct SpeciesDetailView: View {
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Color.biolumMint.opacity(0.4), lineWidth: 1)
+                        )
+                    }
+
+                    Button(action: { router.openQuiz(for: currentSpecies.id) }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 15, weight: .bold))
+                            Text("趣味挑战")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .foregroundColor(Color.goldLight)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                        .background(Color.amberGold.opacity(0.16))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.amberGold.opacity(0.45), lineWidth: 1)
                         )
                     }
                 }

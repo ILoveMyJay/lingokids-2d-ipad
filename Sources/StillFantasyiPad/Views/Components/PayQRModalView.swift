@@ -1,7 +1,10 @@
 import SwiftUI
 
 public struct PayQRModalView: View {
+    @EnvironmentObject private var appState: AppState
     @Binding var isPresented: Bool
+
+    private let provider = PaymentService.activeProvider
 
     public init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
@@ -15,7 +18,7 @@ public struct PayQRModalView: View {
                     isPresented = false
                 }
 
-            VStack(spacing: 20) {
+            VStack(spacing: 18) {
                 // Header
                 HStack {
                     Spacer()
@@ -39,41 +42,83 @@ public struct PayQRModalView: View {
                     .clipShape(Capsule())
                     .overlay(Capsule().stroke(Color.amberGold.opacity(0.4), lineWidth: 1))
 
-                Text("微信扫码安全支付")
+                Text(appState.isVip ? "VIP PRO 终身会员已激活" : provider.displayName)
                     .font(.system(size: 20, weight: .black))
                     .foregroundColor(Color.textLight)
 
-                Text("开通后立即解锁全部 \(SpeciesDataStore.sampleSpecies.count) 种生物深度解剖与 1,600+ 高清原声")
+                Text("开通后立即解锁全部 \(SpeciesDataStore.sampleSpecies.count) 种生物深度解剖与双语神经网络原声")
                     .font(.system(size: 12))
                     .foregroundColor(Color.textMuted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
-                // Mock QR Code Box
+                // WeChat QR Code Box (App Store submission will swap to StoreKit 2 via PaymentService)
                 ZStack {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color.white)
-                        .frame(width: 180, height: 180)
+                        .frame(width: 176, height: 176)
 
-                    VStack(spacing: 8) {
-                        Image(systemName: "qrcode")
-                            .font(.system(size: 100))
-                            .foregroundColor(Color(hex: "#07130E"))
+                    if appState.isVip {
+                        VStack(spacing: 10) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.system(size: 64))
+                                .foregroundColor(Color.biolumEmerald)
+                            Text("终身权益生效中")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(Color(hex: "#07130E"))
+                        }
+                    } else {
+                        VStack(spacing: 8) {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 96))
+                                .foregroundColor(Color(hex: "#07130E"))
 
-                        Text("微信扫一扫支付")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(Color(hex: "#07130E"))
+                            Text("微信扫一扫支付")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(Color(hex: "#07130E"))
+                        }
                     }
                 }
 
                 // Price
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("¥ 98")
+                    Text(provider.planPriceText)
                         .font(.system(size: 28, weight: .black))
                         .foregroundColor(Color.goldLight)
                     Text("/ 终身无限期畅玩")
                         .font(.system(size: 12))
                         .foregroundColor(Color.textMuted)
+                }
+
+                // Interactive confirmation button
+                if appState.isVip {
+                    Button(action: { isPresented = false }) {
+                        Text("继续探索自然宇宙")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.darkEmeraldBg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.biolumMint)
+                            .clipShape(Capsule())
+                    }
+                } else {
+                    Button(action: {
+                        provider.activateMembership(on: appState)
+                    }) {
+                        Text("我已完成微信扫码 · 激活 VIP 权益")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.darkEmeraldBg)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.goldLight, Color.amberGold],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(Capsule())
+                    }
                 }
 
                 // Trust Badges
@@ -94,7 +139,7 @@ public struct PayQRModalView: View {
                             .foregroundColor(Color.textMuted)
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, 2)
             }
             .padding(28)
             .background(Color.darkEmeraldBg)

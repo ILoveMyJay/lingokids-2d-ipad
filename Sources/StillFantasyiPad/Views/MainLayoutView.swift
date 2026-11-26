@@ -70,6 +70,12 @@ public struct MainLayoutView: View {
         .onChange(of: router.activeTab) { _, _ in
             AudioService.shared.stop()
         }
+        .onAppear {
+            appState.recordVisit(router.selectedSpeciesId)
+        }
+        .onChange(of: router.selectedSpeciesId) { _, newId in
+            appState.recordVisit(newId)
+        }
     }
 
     // MARK: - Screen router
@@ -85,22 +91,23 @@ public struct MainLayoutView: View {
             AnatomyStageView()
         case .micro:
             MicroWorldView()
+        case .quiz:
+            VStack(spacing: 12) {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 36))
+                    .foregroundColor(Color.biolumMint)
+                Text("趣味挑战准备中")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Color.textLight)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.darkEmeraldBg)
         case .codex:
-            CodexView(
-                onUnlockSpecies: { id in
-                    if appState.unlock(id) {
-                        router.presentUnlockCelebration(for: id)
-                    }
-                }
-            )
+            CodexView()
         case .membership:
-            MembershipCenterView(
-                onOpenPayModal: { router.openPayModal() }
-            )
+            MembershipCenterView()
         case .profile:
-            ProfileView(
-                onOpenPayModal: { router.openPayModal() }
-            )
+            ProfileView()
         }
     }
 

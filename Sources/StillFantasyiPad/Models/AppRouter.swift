@@ -7,6 +7,7 @@ public enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case species
     case anatomy
     case micro
+    case quiz
     case codex
     case membership
     case profile
@@ -19,6 +20,7 @@ public enum AppTab: String, CaseIterable, Identifiable, Hashable {
         case .species: return "物种档案"
         case .anatomy: return "3D 解剖实验室"
         case .micro: return "微观视界"
+        case .quiz: return "趣味挑战"
         case .codex: return "我的图鉴"
         case .membership: return "会员中心"
         case .profile: return "个人中心"
@@ -31,10 +33,25 @@ public enum AppTab: String, CaseIterable, Identifiable, Hashable {
         case .species: return "square.grid.2x2.fill"
         case .anatomy: return "viewfinder"
         case .micro: return "scope"
+        case .quiz: return "questionmark.circle.fill"
         case .codex: return "book.closed.fill"
         case .membership: return "crown.fill"
         case .profile: return "person.crop.circle.fill"
         }
+    }
+}
+
+public enum CodexFilter: String, Equatable, CaseIterable {
+    case all
+    case insects
+    case land
+    case ocean
+    case birds
+    case desert
+    case unlocked
+
+    public init(categoryId: String) {
+        self = CodexFilter(rawValue: categoryId) ?? .all
     }
 }
 
@@ -43,6 +60,7 @@ public final class AppRouter: ObservableObject {
     @Published public var activeTab: AppTab
     @Published public var selectedSpeciesId: String
     @Published public var selectedBodyPartId: String?
+    @Published public var codexFilter: CodexFilter
     @Published public var searchText: String
     @Published public var showPayModal: Bool
     @Published public var showUnlockModal: Bool
@@ -52,6 +70,7 @@ public final class AppRouter: ObservableObject {
         activeTab: AppTab = .dashboard,
         selectedSpeciesId: String = "blue-morpho",
         selectedBodyPartId: String? = nil,
+        codexFilter: CodexFilter = .all,
         searchText: String = "",
         showPayModal: Bool = false,
         showUnlockModal: Bool = false,
@@ -60,6 +79,7 @@ public final class AppRouter: ObservableObject {
         self.activeTab = activeTab
         self.selectedSpeciesId = selectedSpeciesId
         self.selectedBodyPartId = selectedBodyPartId
+        self.codexFilter = codexFilter
         self.searchText = searchText
         self.showPayModal = showPayModal
         self.showUnlockModal = showUnlockModal
@@ -94,6 +114,18 @@ public final class AppRouter: ObservableObject {
             selectedBodyPartId = partId
         }
         activeTab = .micro
+    }
+
+    public func openQuiz(for speciesId: String? = nil) {
+        if let speciesId {
+            selectedSpeciesId = speciesId
+        }
+        activeTab = .quiz
+    }
+
+    public func openCodex(filter: CodexFilter = .all) {
+        codexFilter = filter
+        activeTab = .codex
     }
 
     public func openPayModal() {

@@ -2,15 +2,13 @@ import SwiftUI
 
 public struct MembershipCenterView: View {
     @EnvironmentObject private var appState: AppState
-    let onOpenPayModal: () -> Void
+    @EnvironmentObject private var router: AppRouter
 
     private let privilegeColumns = [
         GridItem(.adaptive(minimum: 180), spacing: 14)
     ]
 
-    public init(onOpenPayModal: @escaping () -> Void) {
-        self.onOpenPayModal = onOpenPayModal
-    }
+    public init() {}
 
     private var userProfile: UserProfile { appState.userProfile }
 
@@ -50,15 +48,15 @@ public struct MembershipCenterView: View {
                                     .foregroundColor(Color.textLight)
 
                                 HStack(spacing: 4) {
-                                    Image(systemName: "crown.fill")
+                                    Image(systemName: userProfile.isVip ? "crown.fill" : "leaf.fill")
                                         .font(.system(size: 11))
-                                    Text("VIP PRO 会员")
+                                    Text(userProfile.isVip ? "VIP PRO 会员" : "普通探索者")
                                         .font(.system(size: 11, weight: .bold))
                                 }
-                                .foregroundColor(Color.darkEmeraldBg)
+                                .foregroundColor(userProfile.isVip ? Color.darkEmeraldBg : Color.textLight)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(Color.goldLight)
+                                .background(userProfile.isVip ? Color.goldLight : Color.darkEmeraldSurface)
                                 .clipShape(Capsule())
                             }
 
@@ -70,16 +68,19 @@ public struct MembershipCenterView: View {
 
                     Spacer()
 
-                    Button(action: onOpenPayModal) {
-                        Text("终身权益生效中")
+                    Button(action: { router.openPayModal() }) {
+                        Text(userProfile.isVip ? "终身权益生效中" : "立即开通 VIP PRO")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(Color.biolumMint)
+                            .foregroundColor(userProfile.isVip ? Color.biolumMint : Color.darkEmeraldBg)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .background(Color.biolumMint.opacity(0.12))
+                            .background(userProfile.isVip ? Color.biolumMint.opacity(0.12) : Color.goldLight)
                             .clipShape(Capsule())
                             .overlay(
-                                Capsule().stroke(Color.biolumMint.opacity(0.3), lineWidth: 1)
+                                Capsule().stroke(
+                                    userProfile.isVip ? Color.biolumMint.opacity(0.3) : Color.clear,
+                                    lineWidth: 1
+                                )
                             )
                     }
                 }
@@ -132,13 +133,13 @@ public struct MembershipCenterView: View {
 
                             Spacer()
 
-                            Button(action: onOpenPayModal) {
+                            Button(action: { router.openPayModal() }) {
                                 VStack(spacing: 4) {
-                                    Text("¥98 / 终身买断")
+                                    Text(userProfile.isVip ? "终身权益已激活" : "\(PaymentService.activeProvider.planPriceText) / 终身买断")
                                         .font(.system(size: 16, weight: .black))
                                         .foregroundColor(Color.darkEmeraldBg)
 
-                                    Text("原价 ¥198 · 限时特惠")
+                                    Text(userProfile.isVip ? "点击查看支付凭证" : "原价 ¥198 · 限时特惠")
                                         .font(.system(size: 10, weight: .medium))
                                         .foregroundColor(Color.darkEmeraldBg.opacity(0.8))
                                 }
@@ -158,10 +159,10 @@ public struct MembershipCenterView: View {
 
                         // 4 Privileges Adaptive Grid
                         LazyVGrid(columns: privilegeColumns, spacing: 14) {
-                            PrivilegeCard(icon: "cube.transparent", title: "3D 全景解剖", desc: "\(SpeciesDataStore.sampleSpecies.count) 种生物多层肌理与仿生结构无死角旋转")
-                            PrivilegeCard(icon: "waveform.badge.magnifyingglass", title: "1,600+ 原声音频", desc: "高保真雨林生境原声与多语种双语导览讲解")
+                            PrivilegeCard(icon: "cube.transparent", title: "3D 全景解剖", desc: "\(SpeciesDataStore.sampleSpecies.count) 种生物多层结构与仿生机关深度解析")
+                            PrivilegeCard(icon: "waveform.badge.magnifyingglass", title: "全量双语原声", desc: "神经网络中英双语科普讲解与 BBC 纪录片英文配音")
                             PrivilegeCard(icon: "scope", title: "800× 纳米显微", desc: "电子显微镜级别光子晶体与超疏水表面探秘")
-                            PrivilegeCard(icon: "arrow.down.circle.fill", title: "离线全量数据", desc: "支持 361MB 媒体资源离线高速读取，无网畅玩")
+                            PrivilegeCard(icon: "arrow.down.circle.fill", title: "智能离线缓存", desc: "图片与语音自动双端缓存，断网也可流畅复习")
                         }
                     }
                     .padding(28)
