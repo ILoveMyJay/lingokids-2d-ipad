@@ -157,15 +157,21 @@ enum SpecimenImageLoader {
 public struct SpecimenImageView: View {
     let path: String
     let contentMode: ContentMode
+    let onImageLoaded: ((CGSize) -> Void)?
 
     @State private var displayImage: PlatformImage? = nil
     @State private var isLoading: Bool = false
     @State private var didFail: Bool = false
     @State private var reloadToken: Int = 0
 
-    public init(_ path: String, contentMode: ContentMode = .fill) {
+    public init(
+        _ path: String,
+        contentMode: ContentMode = .fill,
+        onImageLoaded: ((CGSize) -> Void)? = nil
+    ) {
         self.path = path
         self.contentMode = contentMode
+        self.onImageLoaded = onImageLoaded
     }
 
     private var cleanKey: String {
@@ -211,6 +217,7 @@ public struct SpecimenImageView: View {
         if let cached = ImageCacheService.shared.memoryImage(for: key) {
             displayImage = cached
             isLoading = false
+            onImageLoaded?(cached.size)
             return
         }
         displayImage = nil          // don't keep showing the previous species' image
@@ -220,6 +227,7 @@ public struct SpecimenImageView: View {
         isLoading = false
         if let img {
             displayImage = img
+            onImageLoaded?(img.size)
         } else {
             didFail = true
         }

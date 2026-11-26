@@ -7,14 +7,16 @@ def gen_id(name: str) -> str:
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
 sources_dir = os.path.join(project_dir, "Sources/StillFantasyiPad")
+development_team = os.environ.get("STILLFANTASY_DEVELOPMENT_TEAM", "2M24UZ8ZRQ")
 
 # Find all swift files and bundled json data files
 swift_files = []
 json_files = []
 for root, dirs, files in os.walk(sources_dir):
+    dirs[:] = sorted(dirs)
     for f in sorted(files):
         full_path = os.path.join(root, f)
-        rel_path = os.path.relpath(full_path, project_dir)
+        rel_path = os.path.relpath(full_path, project_dir).replace(os.sep, "/")
         if f.endswith(".swift"):
             swift_files.append((f, rel_path))
         elif f.endswith(".json"):
@@ -285,6 +287,7 @@ project_pbxproj = f"""// !$*UTF8*$!
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = {development_team};
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
@@ -313,6 +316,7 @@ project_pbxproj = f"""// !$*UTF8*$!
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = {development_team};
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";

@@ -15,6 +15,7 @@
 		02671BE954167D4EA207409D /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0590F59488151DA8643427B7 /* UserProfile.swift */; };
 		D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F2918F642BF619DA24F14F /* AudioService.swift */; };
 		75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4D96791B1688A70F46887C /* ThemeColors.swift */; };
+		2529BDE40DB34F801BC7E6DF /* Collection+Safe.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4621ED6A1171949BBE9C386 /* Collection+Safe.swift */; };
 		B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */; };
 		5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0790691964E91FB0C7AA1C5 /* CodexView.swift */; };
 		85D417E24819D6FF7AA3032E /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39114084529C60F6ADD65DD /* DashboardView.swift */; };
@@ -43,6 +44,7 @@
 		0590F59488151DA8643427B7 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Models/UserProfile.swift"; sourceTree = "<group>"; };
 		B3F2918F642BF619DA24F14F /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Services/AudioService.swift"; sourceTree = "<group>"; };
 		CF4D96791B1688A70F46887C /* ThemeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Theme/ThemeColors.swift"; sourceTree = "<group>"; };
+		B4621ED6A1171949BBE9C386 /* Collection+Safe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Utilities/Collection+Safe.swift"; sourceTree = "<group>"; };
 		863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/AnatomyStageView.swift"; sourceTree = "<group>"; };
 		E0790691964E91FB0C7AA1C5 /* CodexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/CodexView.swift"; sourceTree = "<group>"; };
 		E39114084529C60F6ADD65DD /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/DashboardView.swift"; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 				0590F59488151DA8643427B7 /* UserProfile.swift */,
 				B3F2918F642BF619DA24F14F /* AudioService.swift */,
 				CF4D96791B1688A70F46887C /* ThemeColors.swift */,
+				B4621ED6A1171949BBE9C386 /* Collection+Safe.swift */,
 				863D42E717F5A6BA530A9492 /* AnatomyStageView.swift */,
 				E0790691964E91FB0C7AA1C5 /* CodexView.swift */,
 				E39114084529C60F6ADD65DD /* DashboardView.swift */,
@@ -200,6 +203,7 @@
 				02671BE954167D4EA207409D /* UserProfile.swift in Sources */,
 				D8E2D60D100544365B9124F5 /* AudioService.swift in Sources */,
 				75F4A713038F614A0B83546F /* ThemeColors.swift in Sources */,
+				2529BDE40DB34F801BC7E6DF /* Collection+Safe.swift in Sources */,
 				B296B2CEDE451A998EB6BE38 /* AnatomyStageView.swift in Sources */,
 				5C7A3CA85EED03C835E138D5 /* CodexView.swift in Sources */,
 				85D417E24819D6FF7AA3032E /* DashboardView.swift in Sources */,
@@ -290,6 +294,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 2M24UZ8ZRQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
@@ -318,6 +323,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 2M24UZ8ZRQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";

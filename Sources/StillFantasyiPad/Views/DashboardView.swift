@@ -6,22 +6,27 @@ public struct DashboardView: View {
 
     @State private var featuredIndex: Int = 0
 
-    // Top featured species for Hero spotlight
-    private let featuredList: [Species] = [
-        SpeciesDataStore.getSpecies(by: "rhinoceros-beetle"),
-        SpeciesDataStore.getSpecies(by: "blue-morpho"),
-        SpeciesDataStore.getSpecies(by: "peregrine-falcon"),
-        SpeciesDataStore.getSpecies(by: "green-sea-turtle"),
-        SpeciesDataStore.getSpecies(by: "giant-panda"),
-        SpeciesDataStore.getSpecies(by: "cheetah")
-    ]
+    // Top featured species for Hero spotlight (resolved safely so fallback datasets never crash)
+    private let featuredList: [Species] = {
+        let preferredIds = [
+            "rhinoceros-beetle",
+            "blue-morpho",
+            "peregrine-falcon",
+            "green-sea-turtle",
+            "giant-panda",
+            "cheetah",
+            "fennec-fox"
+        ]
+        let resolved = preferredIds.compactMap { SpeciesDataStore.species(by: $0) }
+        return resolved.isEmpty ? SpeciesDataStore.sampleSpecies : resolved
+    }()
 
     private let categoryColumns = [
         GridItem(.adaptive(minimum: 200), spacing: 16)
     ]
 
     private var currentFeatured: Species {
-        featuredList[featuredIndex % featuredList.count]
+        featuredList[safe: featuredIndex % max(featuredList.count, 1)] ?? SpeciesDataStore.sampleSpecies[0]
     }
 
     public init() {}

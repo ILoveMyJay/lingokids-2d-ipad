@@ -3,12 +3,17 @@ import SwiftUI
 public struct AnatomyStageView: View {
     @EnvironmentObject private var router: AppRouter
     @State private var selectedPartIndex: Int = 0
+    @State private var stageImageSize: CGSize = .zero
     @ObservedObject private var audioService = AudioService.shared
 
     public init() {}
 
     private var currentSpecies: Species {
         SpeciesDataStore.getSpecies(by: router.selectedSpeciesId)
+    }
+
+    private var selectedPart: BodyPart? {
+        currentSpecies.bodyParts[safe: selectedPartIndex] ?? currentSpecies.bodyParts.first
     }
 
     private var availableSpeciesWithParts: [Species] {
@@ -41,8 +46,7 @@ public struct AnatomyStageView: View {
 
                 Spacer()
 
-                if !currentSpecies.bodyParts.isEmpty {
-                    let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+                if let part = selectedPart {
                     let token = "anatomy-\(part.id)"
                     Button(action: {
                         if audioService.isActive(token: token) {
@@ -119,12 +123,14 @@ public struct AnatomyStageView: View {
                 VStack(spacing: 16) {
                     GeometryReader { geo in
                         ZStack {
-                            SpecimenImageView(currentSpecies.coverImage, contentMode: .fit)
-                                .frame(width: geo.size.width, height: geo.size.height)
+                            SpecimenImageView(currentSpecies.coverImage, contentMode: .fit) { size in
+                                stageImageSize = size
+                            }
+                            .frame(width: geo.size.width, height: geo.size.height)
 
                             ForEach(Array(currentSpecies.bodyParts.enumerated()), id: \.element.id) { idx, part in
                                 let isSelected = (idx == selectedPartIndex)
-                                let pos = hotspotPosition(for: part, in: geo.size)
+                                let pos = Self.hotspotPosition(for: part, in: geo.size, imageSize: stageImageSize)
                                 Button(action: {
                                     withAnimation(.spring()) {
                                         selectedPartIndex = idx
@@ -162,8 +168,7 @@ public struct AnatomyStageView: View {
 
                     // Bottom Teaser: Micro World
                     HStack(spacing: 16) {
-                        if !currentSpecies.bodyParts.isEmpty {
-                            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+                        if let part = selectedPart {
                             SpecimenImageView(part.macroImage)
                                 .frame(width: 60, height: 60)
                                 .cornerRadius(12)
@@ -185,10 +190,7 @@ public struct AnatomyStageView: View {
                         Spacer()
 
                         Button(action: {
-                            let partId: String? = currentSpecies.bodyParts.isEmpty
-                                ? nil
-                                : currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)].id
-                            router.openMicro(partId: partId)
+                            router.openMicro(partId: selectedPart?.id)
                         }) {
                             HStack(spacing: 4) {
                                 Text("进入超微观视界")
@@ -251,8 +253,7 @@ public struct AnatomyStageView: View {
                         }
                     }
 
-                    if !currentSpecies.bodyParts.isEmpty {
-                        let currentPart = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+                    if let currentPart = selectedPart {
                         VStack(alignment: .leading, spacing: 14) {
                             SpecimenImageView(currentPart.macroImage)
                                 .frame(maxWidth: .infinity)
@@ -341,6 +342,7 @@ public struct AnatomyStageView: View {
             syncActivePart()
         }
         .onChange(of: router.selectedSpeciesId) { _, _ in
+            stageImageSize = .zero
             syncActivePart()
         }
         .onChange(of: selectedPartIndex) { _, _ in
@@ -351,18 +353,42 @@ public struct AnatomyStageView: View {
         }
     }
 
-    /// Maps 0...100 hotspot coordinates safely inside the stage with 28pt edge padding
-    /// so 44pt kid-friendly tap targets never clip on Split View or narrow windows.
-    private func hotspotPosition(for part: BodyPart, in size: CGSize) -> CGPoint {
-        let padding: CGFloat = 28
-        let usableW = max(size.width - padding * 2, 1)
-        let usableH = max(size.height - padding * 2, 1)
+    /// Computes the centered aspect-fit drawing rect of an image inside `containerSize`.
+    public static func aspectFitRect(imageSize: CGSize, in containerSize: CGSize) -> CGRect {
+        guard containerSize.width > 0, containerSize.height > 0 else {
+            return .zero
+        }
+        guard imageSize.width > 0, imageSize.height > 0 else {
+            return CGRect(origin: .zero, size: containerSize)
+        }
+        let scale = min(containerSize.width / imageSize.width, containerSize.height / imageSize.height)
+        let drawSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        let origin = CGPoint(
+            x: (containerSize.width - drawSize.width) / 2.0,
+            y: (containerSize.height - drawSize.height) / 2.0
+        )
+        return CGRect(origin: origin, size: drawSize)
+    }
+
+    /// Maps 0...100 hotspot coordinates into the actual aspect-fit image rect while
+    /// clamping within `edgePadding` inside the stage container so 44pt tap targets stay visible.
+    public static func hotspotPosition(
+        for part: BodyPart,
+        in containerSize: CGSize,
+        imageSize: CGSize,
+        edgePadding: CGFloat = 24
+    ) -> CGPoint {
+        let rect = aspectFitRect(imageSize: imageSize, in: containerSize)
         let nx = min(max(part.hotspotX / 100.0, 0.0), 1.0)
         let ny = min(max(part.hotspotY / 100.0, 0.0), 1.0)
-        return CGPoint(
-            x: padding + usableW * CGFloat(nx),
-            y: padding + usableH * CGFloat(ny)
-        )
+        let rawX = rect.minX + rect.width * CGFloat(nx)
+        let rawY = rect.minY + rect.height * CGFloat(ny)
+
+        let padX = min(edgePadding, containerSize.width / 2.0)
+        let padY = min(edgePadding, containerSize.height / 2.0)
+        let clampedX = min(max(rawX, padX), max(containerSize.width - padX, padX))
+        let clampedY = min(max(rawY, padY), max(containerSize.height - padY, padY))
+        return CGPoint(x: clampedX, y: clampedY)
     }
 
     private func syncActivePart() {

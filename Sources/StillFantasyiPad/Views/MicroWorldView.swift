@@ -26,57 +26,54 @@ public struct MicroWorldView: View {
         SpeciesDataStore.getSpecies(by: router.selectedSpeciesId)
     }
 
+    private var activeBodyPart: BodyPart? {
+        guard mode == .speciesParts else { return nil }
+        return currentSpecies.bodyParts[safe: selectedPartIndex] ?? currentSpecies.bodyParts.first
+    }
+
+    private var activeClassicSpecimen: MicroSpecimen? {
+        classicSpecimens[safe: selectedClassicIndex] ?? classicSpecimens.first
+    }
+
     private var activeImage: String {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
-            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+        if let part = activeBodyPart {
             return part.macroImage
-        } else {
-            let item = classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)]
-            return item.image
         }
+        return activeClassicSpecimen?.image ?? currentSpecies.coverImage
     }
 
     private var activeTitleZh: String {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
-            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+        if let part = activeBodyPart {
             return "\(currentSpecies.nameZh) · \(part.nameZh)"
-        } else {
-            return classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)].titleZh
         }
+        return activeClassicSpecimen?.titleZh ?? currentSpecies.nameZh
     }
 
     private var activeSubtitle: String {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
-            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+        if let part = activeBodyPart {
             return "\(part.nameEn) · 400× 显微镜"
-        } else {
-            let item = classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)]
+        }
+        if let item = activeClassicSpecimen {
             return "\(item.categoryZh) · \(item.magnification)"
         }
+        return "400× 显微镜"
     }
 
     private var activeDescription: String {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
-            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
+        if let part = activeBodyPart {
             return part.descZh
-        } else {
-            return classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)].descZh
         }
+        return activeClassicSpecimen?.descZh ?? currentSpecies.overviewZh
     }
 
     private var activeFunFact: String? {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty {
-            let part = currentSpecies.bodyParts[min(selectedPartIndex, currentSpecies.bodyParts.count - 1)]
-            return part.funFactZh
-        } else {
-            return nil
-        }
+        activeBodyPart?.funFactZh
     }
 
     /// Real optical base magnification of what is on screen (parts are 400x; classic slices carry their own).
     private var baseMagnification: Double {
-        if mode == .speciesParts && !currentSpecies.bodyParts.isEmpty { return 400 }
-        let item = classicSpecimens[min(selectedClassicIndex, classicSpecimens.count - 1)]
+        if activeBodyPart != nil { return 400 }
+        guard let item = activeClassicSpecimen else { return 400 }
         let digits = item.magnification.filter { $0.isNumber }
         return Double(digits) ?? 400
     }
