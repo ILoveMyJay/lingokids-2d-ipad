@@ -52,7 +52,17 @@ public struct AnatomyStageView: View {
                         if audioService.isActive(token: token) {
                             audioService.stop()
                         } else {
-                            audioService.speak(text: "\(part.nameZh)。\(part.descZh) \(part.funFactZh ?? "")", token: token)
+                            audioService.play(
+                                remotePath: AudioPathBuilder.part(
+                                    speciesId: currentSpecies.id,
+                                    rawPartId: part.rawId,
+                                    field: "desc",
+                                    lang: .zh
+                                ),
+                                fallbackText: "\(part.nameZh)。\(part.descZh) \(part.funFactZh ?? "")",
+                                language: .zh,
+                                token: token
+                            )
                         }
                     }) {
                         HStack(spacing: 4) {
@@ -347,6 +357,7 @@ public struct AnatomyStageView: View {
         }
         .onChange(of: selectedPartIndex) { _, _ in
             audioService.stop()
+            preloadActiveAndNextPartAudio()
         }
         .onChange(of: router.selectedBodyPartId) { _, _ in
             syncActivePart()
@@ -399,5 +410,18 @@ public struct AnatomyStageView: View {
             selectedPartIndex = 0
             router.selectedBodyPartId = currentSpecies.bodyParts.first?.id
         }
+        preloadActiveAndNextPartAudio()
+    }
+
+    private func preloadActiveAndNextPartAudio() {
+        var paths: [String] = []
+        if let current = selectedPart {
+            paths.append(AudioPathBuilder.part(speciesId: currentSpecies.id, rawPartId: current.rawId, field: "desc", lang: .zh))
+            paths.append(AudioPathBuilder.part(speciesId: currentSpecies.id, rawPartId: current.rawId, field: "desc", lang: .en))
+        }
+        if let next = currentSpecies.bodyParts[safe: selectedPartIndex + 1] {
+            paths.append(AudioPathBuilder.part(speciesId: currentSpecies.id, rawPartId: next.rawId, field: "desc", lang: .zh))
+        }
+        audioService.preload(remotePaths: paths)
     }
 }

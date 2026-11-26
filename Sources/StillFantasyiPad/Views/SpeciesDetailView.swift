@@ -210,7 +210,12 @@ public struct SpeciesDetailView: View {
                                 if audioService.isActive(token: zhToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)", token: zhToken)
+                                    audioService.play(
+                                        remotePath: AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .zh),
+                                        fallbackText: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)",
+                                        language: .zh,
+                                        token: zhToken
+                                    )
                                 }
                             }) {
                                 HStack(spacing: 6) {
@@ -230,7 +235,12 @@ public struct SpeciesDetailView: View {
                                 if audioService.isActive(token: enToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)", language: "en-US", token: enToken)
+                                    audioService.play(
+                                        remotePath: AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .en),
+                                        fallbackText: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)",
+                                        language: .en,
+                                        token: enToken
+                                    )
                                 }
                             }) {
                                 HStack(spacing: 6) {
@@ -355,8 +365,19 @@ public struct SpeciesDetailView: View {
                 .padding(.bottom, 24)
             }
         }
+        .onAppear {
+            preloadSpeciesAudio()
+        }
         .onChange(of: router.selectedSpeciesId) { _, _ in
             selectedSubTab = 0
+            preloadSpeciesAudio()
         }
+    }
+
+    private func preloadSpeciesAudio() {
+        audioService.preload(remotePaths: [
+            AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .zh),
+            AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .en)
+        ])
     }
 }

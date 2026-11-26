@@ -168,8 +168,24 @@ public struct MicroWorldView: View {
                         let token = "micro-\(activeTitleZh)"
                         if audioService.isActive(token: token) {
                             audioService.stop()
+                        } else if let part = activeBodyPart {
+                            audioService.play(
+                                remotePath: AudioPathBuilder.part(
+                                    speciesId: currentSpecies.id,
+                                    rawPartId: part.rawId,
+                                    field: "desc",
+                                    lang: .zh
+                                ),
+                                fallbackText: "\(activeTitleZh)。\(activeDescription) \(activeFunFact ?? "")",
+                                language: .zh,
+                                token: token
+                            )
                         } else {
-                            audioService.speak(text: "\(activeTitleZh)。\(activeDescription) \(activeFunFact ?? "")", token: token)
+                            audioService.speak(
+                                text: "\(activeTitleZh)。\(activeDescription)",
+                                language: AudioLanguage.zh.speechLocale,
+                                token: token
+                            )
                         }
                     }) {
                         Image(systemName: audioService.isActive(token: "micro-\(activeTitleZh)") ? "waveform" : "speaker.wave.2")
