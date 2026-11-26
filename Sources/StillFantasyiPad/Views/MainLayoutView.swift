@@ -92,16 +92,7 @@ public struct MainLayoutView: View {
         case .micro:
             MicroWorldView()
         case .quiz:
-            VStack(spacing: 12) {
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(Color.biolumMint)
-                Text("趣味挑战准备中")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color.textLight)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.darkEmeraldBg)
+            QuizView()
         case .codex:
             CodexView()
         case .membership:

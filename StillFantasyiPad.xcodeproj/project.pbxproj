@@ -25,6 +25,7 @@
 		46B9E18556A6CC0D52968BDF /* MembershipCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */; };
 		EFED70BE6C4B62154E562693 /* MicroWorldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */; };
 		3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44B74927EE3E4223017A75AB /* ProfileView.swift */; };
+		7B7412B8582EDF42CCA7AB98 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E9A0A695A494A685E4FE22 /* QuizView.swift */; };
 		808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */; };
 		D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */; };
 		8AFC3B97ADFC600CC7CF1451 /* BentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654D9974A7D7A1919AF6B7CC /* BentoCard.swift */; };
@@ -57,6 +58,7 @@
 		DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/MembershipCenterView.swift"; sourceTree = "<group>"; };
 		084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/MicroWorldView.swift"; sourceTree = "<group>"; };
 		44B74927EE3E4223017A75AB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/ProfileView.swift"; sourceTree = "<group>"; };
+		F4E9A0A695A494A685E4FE22 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/QuizView.swift"; sourceTree = "<group>"; };
 		7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/SpeciesDetailView.swift"; sourceTree = "<group>"; };
 		B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/UnlockCelebrationView.swift"; sourceTree = "<group>"; };
 		654D9974A7D7A1919AF6B7CC /* BentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/StillFantasyiPad/Views/Components/BentoCard.swift"; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 				DF73C2C19AE03B2CF7D2903F /* MembershipCenterView.swift */,
 				084B1E4A1837903DF6DD9DE2 /* MicroWorldView.swift */,
 				44B74927EE3E4223017A75AB /* ProfileView.swift */,
+				F4E9A0A695A494A685E4FE22 /* QuizView.swift */,
 				7EB12B407AFDF018D483A82C /* SpeciesDetailView.swift */,
 				B954D1E99CF26F8D9E8631A6 /* UnlockCelebrationView.swift */,
 				654D9974A7D7A1919AF6B7CC /* BentoCard.swift */,
@@ -222,6 +225,7 @@
 				46B9E18556A6CC0D52968BDF /* MembershipCenterView.swift in Sources */,
 				EFED70BE6C4B62154E562693 /* MicroWorldView.swift in Sources */,
 				3C382A75B1E269BA819BAFE5 /* ProfileView.swift in Sources */,
+				7B7412B8582EDF42CCA7AB98 /* QuizView.swift in Sources */,
 				808FCD52044F1D6FA2F2854E /* SpeciesDetailView.swift in Sources */,
 				D37FF4ACDA9554A023D89787 /* UnlockCelebrationView.swift in Sources */,
 				8AFC3B97ADFC600CC7CF1451 /* BentoCard.swift in Sources */,

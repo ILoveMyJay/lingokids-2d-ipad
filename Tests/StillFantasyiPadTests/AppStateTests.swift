@@ -122,5 +122,44 @@ final class AppStateTests: XCTestCase {
         let decoded = try SpeciesDataStore.decodeSpecies(from: json)
         XCTAssertEqual(decoded.count, 1)
         XCTAssertEqual(decoded[0].bodyParts.first?.id, "test-beetle/horn")
+        XCTAssertEqual(decoded[0].bodyParts.first?.rawId, "horn")
+        XCTAssertTrue(decoded[0].quizQuestions.isEmpty)
+    }
+
+    func testVipPersistenceAndRecentVisitDeduplication() {
+        let state = AppState(defaults: defaults)
+        state.setVip(false)
+        XCTAssertFalse(state.isVip)
+        state.activateVip()
+        XCTAssertTrue(state.isVip)
+
+        let ids = Array(SpeciesDataStore.sampleSpecies.prefix(15).map { $0.id })
+        for id in ids {
+            state.recordVisit(id)
+        }
+        XCTAssertEqual(state.recentSpeciesIds.count, AppState.maxRecentSpecies)
+        XCTAssertEqual(state.recentSpeciesIds.first, ids.last)
+
+        if let firstId = ids.first {
+            state.recordVisit(firstId)
+            XCTAssertEqual(state.recentSpeciesIds.first, firstId)
+        }
+    }
+
+    func testQuizCompletionUnlocksLockedSpeciesAndGrantsXp() {
+        let state = AppState(defaults: defaults)
+        guard let locked = SpeciesDataStore.sampleSpecies.first(where: { !state.isUnlocked($0.id) }) else {
+            XCTFail("Expected at least one locked starter species")
+            return
+        }
+
+        let res = state.recordQuizCompletion(speciesId: locked.id, correctCount: 2, totalCount: 3)
+        XCTAssertTrue(res.newlyUnlocked)
+        XCTAssertTrue(state.isUnlocked(locked.id))
+        XCTAssertTrue(state.isQuizCompleted(locked.id))
+        XCTAssertEqual(
+            res.xpEarned,
+            2 * AppState.quizQuestionReward + AppState.quizPassBonus + AppState.unlockReward
+        )
     }
 }
