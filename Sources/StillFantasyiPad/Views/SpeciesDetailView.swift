@@ -1,52 +1,54 @@
 import SwiftUI
 
 public struct SpeciesDetailView: View {
-    @Binding var selectedSpeciesId: String
-    @Binding var activeTab: String
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var router: AppRouter
     @State private var selectedSubTab: Int = 0
     @ObservedObject private var audioService = AudioService.shared
 
-    public init(selectedSpeciesId: Binding<String>, activeTab: Binding<String>) {
-        self._selectedSpeciesId = selectedSpeciesId
-        self._activeTab = activeTab
-    }
+    private let bentoColumns = [
+        GridItem(.adaptive(minimum: 190), spacing: 14)
+    ]
+
+    public init() {}
 
     private var currentSpecies: Species {
-        SpeciesDataStore.getSpecies(by: selectedSpeciesId)
+        SpeciesDataStore.getSpecies(by: router.selectedSpeciesId)
     }
 
-    private var zhToken: String { "species-zh-\(selectedSpeciesId)" }
-    private var enToken: String { "species-en-\(selectedSpeciesId)" }
+    private var zhToken: String { "species-zh-\(router.selectedSpeciesId)" }
+    private var enToken: String { "species-en-\(router.selectedSpeciesId)" }
 
-    // List of quick-switch animals
     private var quickSwitchSpecies: [Species] {
         SpeciesDataStore.sampleSpecies
     }
 
     private var bentoGrid: some View {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Text("\(currentSpecies.nameZh) · 生物学核心特征")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color.textLight)
-                    Spacer()
-                    Text("已收录 \(currentSpecies.bodyParts.count) 个解剖部位")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.biolumMint)
-                }
-
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                    BentoCard(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
-                    BentoCard(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期")
-                    BentoCard(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源")
-                    BentoCard(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
-                    BentoCard(icon: "sparkles", title: "学名归属", value: currentSpecies.scientificName, desc: "国际动植物命名法典分类")
-                    BentoCard(icon: "shield.checkerboard", title: "解剖结构", value: "\(currentSpecies.bodyParts.count) 个核心结构", desc: "可在解剖实验室逐一查看各部位")
-                    BentoCard(icon: "trophy.fill", title: "稀有度评级", value: "★ \(currentSpecies.rarity) 星级物种", desc: "生态价值与濒危参考指标")
-                    BentoCard(icon: "scope", title: "显微模式", value: "支持 400× 显微", desc: "纳米微观纹理与仿生机制")
-                }
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("\(currentSpecies.nameZh) · 生物学核心特征")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color.textLight)
+                Spacer()
+                Text("已收录 \(currentSpecies.bodyParts.count) 个解剖部位")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color.biolumMint)
             }
+
+            LazyVGrid(columns: bentoColumns, spacing: 14) {
+                BentoCard(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
+                BentoCard(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期")
+                BentoCard(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源")
+                BentoCard(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
+                if let speed = currentSpecies.speed, !speed.isEmpty {
+                    BentoCard(icon: "wind", title: "运动速度", value: speed, desc: "自然环境最高移动速率")
+                }
+                BentoCard(icon: "sparkles", title: "学名归属", value: currentSpecies.scientificName, desc: "国际动植物命名法典分类")
+                BentoCard(icon: "shield.checkerboard", title: "解剖结构", value: "\(currentSpecies.bodyParts.count) 个核心结构", desc: "可在解剖实验室逐一查看各部位")
+                BentoCard(icon: "trophy.fill", title: "稀有度评级", value: "★ \(currentSpecies.rarity) 星级物种", desc: "生态价值与濒危参考指标")
+                BentoCard(icon: "scope", title: "显微模式", value: "支持 400× 显微", desc: "纳米微观纹理与仿生机制")
+            }
+        }
     }
 
     public var body: some View {
@@ -54,7 +56,7 @@ public struct SpeciesDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // MARK: - Breadcrumbs & Quick Nav
                 HStack(spacing: 8) {
-                    Button(action: { activeTab = "dashboard" }) {
+                    Button(action: { router.selectTab(.dashboard) }) {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 12, weight: .bold))
@@ -82,22 +84,22 @@ public struct SpeciesDetailView: View {
 
                     Spacer()
 
-                    // Favorite Button
                     Button(action: { appState.toggleFavorite(currentSpecies.id) }) {
                         let isFavorite = appState.isFavorite(currentSpecies.id)
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.system(size: 16))
                             .foregroundColor(isFavorite ? Color.red : Color.textMuted)
-                            .frame(width: 38, height: 38)
+                            .frame(width: 44, height: 44)
                             .background(Color.darkEmeraldCard)
                             .clipShape(Circle())
                             .overlay(Circle().stroke(Color.darkEmeraldBorder, lineWidth: 1))
                     }
+                    .accessibilityLabel(appState.isFavorite(currentSpecies.id) ? "取消收藏" : "收藏物种")
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
 
-                // MARK: - Dynamic Species Switcher Carousel (Click any animal to view details!)
+                // MARK: - Dynamic Species Switcher Carousel
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Image(systemName: "sparkles")
@@ -112,10 +114,10 @@ public struct SpeciesDetailView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
                             ForEach(quickSwitchSpecies) { sp in
-                                let isSelected = (sp.id == selectedSpeciesId)
+                                let isSelected = (sp.id == router.selectedSpeciesId)
                                 Button(action: {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        selectedSpeciesId = sp.id
+                                        router.selectedSpeciesId = sp.id
                                         audioService.stop()
                                     }
                                 }) {
@@ -144,7 +146,7 @@ public struct SpeciesDetailView: View {
                     }
                 }
 
-                // MARK: - Hero Specimen Banner (Dynamically binds to currentSpecies)
+                // MARK: - Hero Specimen Banner
                 ZStack(alignment: .bottomLeading) {
                     SpecimenImageView(currentSpecies.heroImage)
                         .frame(maxWidth: .infinity)
@@ -190,11 +192,28 @@ public struct SpeciesDetailView: View {
                                         .foregroundColor(Color.amberGold)
                                 }
                             }
+
+                            if let nickname = currentSpecies.nicknameZh, !nickname.isEmpty {
+                                Text(nickname)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(Color.goldLight)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color.amberGold.opacity(0.18))
+                                    .clipShape(Capsule())
+                            }
                         }
 
-                        Text(currentSpecies.nameZh)
-                            .font(.system(size: 44, weight: .black))
-                            .foregroundColor(Color.textLight)
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text(currentSpecies.nameZh)
+                                .font(.system(size: 44, weight: .black))
+                                .foregroundColor(Color.textLight)
+                            if let pinyin = currentSpecies.pinyin, !pinyin.isEmpty {
+                                Text(pinyin)
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(Color.textMuted)
+                            }
+                        }
 
                         Text("\(currentSpecies.nameEn) · \(currentSpecies.scientificName)")
                             .font(.system(size: 15, weight: .medium))
@@ -206,13 +225,17 @@ public struct SpeciesDetailView: View {
                             .lineLimit(3)
                             .frame(maxWidth: 580, alignment: .leading)
 
-                        // Bilingual Audio Button
                         HStack(spacing: 12) {
                             Button(action: {
                                 if audioService.isActive(token: zhToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)", token: zhToken)
+                                    audioService.play(
+                                        remotePath: AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .zh),
+                                        fallbackText: "\(currentSpecies.nameZh)。\(currentSpecies.overviewZh)",
+                                        language: .zh,
+                                        token: zhToken
+                                    )
                                 }
                             }) {
                                 HStack(spacing: 6) {
@@ -232,7 +255,12 @@ public struct SpeciesDetailView: View {
                                 if audioService.isActive(token: enToken) {
                                     audioService.stop()
                                 } else {
-                                    audioService.speak(text: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)", language: "en-US", token: enToken)
+                                    audioService.play(
+                                        remotePath: AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .en),
+                                        fallbackText: "\(currentSpecies.nameEn). \(currentSpecies.overviewEn)",
+                                        language: .en,
+                                        token: enToken
+                                    )
                                 }
                             }) {
                                 HStack(spacing: 6) {
@@ -266,7 +294,7 @@ public struct SpeciesDetailView: View {
                     ForEach(0..<tabs.count, id: \.self) { idx in
                         Button(action: {
                             if idx == 3 {
-                                activeTab = "micro"
+                                router.openMicro()
                             } else {
                                 selectedSubTab = idx
                             }
@@ -293,19 +321,19 @@ public struct SpeciesDetailView: View {
                         SubInfoPanel(
                             title: "\(currentSpecies.nameZh) · 生活习性与生态",
                             cards: [
-                                ("leaf.fill", "主要食性", currentSpecies.food, "摄食类型与能量来源"),
-                                ("map.fill", "原生栖息地", currentSpecies.habitat, "自然地理分布与群落")
+                                SubInfoCardData(icon: "leaf.fill", title: "主要食性", value: currentSpecies.food, desc: "摄食类型与能量来源"),
+                                SubInfoCardData(icon: "map.fill", title: "原生栖息地", value: currentSpecies.habitat, desc: "自然地理分布与群落")
                             ],
                             summary: currentSpecies.overviewZh
                         )
                     case 2:
                         SubInfoPanel(
-                            title: "\(currentSpecies.nameZh) · 生命周期与体型",
+                            title: "\(currentSpecies.nameZh) · 生命周期与双语档案",
                             cards: [
-                                ("hourglass", "预期寿命", currentSpecies.lifespan, "自然生境下的存活周期"),
-                                ("ruler", "体长 / 展翅", currentSpecies.length, "生物外形尺度测量")
+                                SubInfoCardData(icon: "hourglass", title: "预期寿命", value: currentSpecies.lifespan, desc: "自然生境下的存活周期"),
+                                SubInfoCardData(icon: "ruler", title: "体长 / 展翅", value: currentSpecies.length, desc: "生物外形尺度测量")
                             ],
-                            summary: currentSpecies.overviewEn
+                            summary: "\(currentSpecies.overviewZh)\n\n\(currentSpecies.overviewEn)"
                         )
                     default:
                         bentoGrid
@@ -313,9 +341,9 @@ public struct SpeciesDetailView: View {
                 }
                 .padding(.horizontal, 24)
 
-                // MARK: - Action Buttons (Navigate to Anatomy or Micro for THIS species)
+                // MARK: - Action Buttons
                 HStack(spacing: 16) {
-                    Button(action: { activeTab = "anatomy" }) {
+                    Button(action: { router.openAnatomy() }) {
                         HStack(spacing: 8) {
                             Image(systemName: "viewfinder")
                                 .font(.system(size: 15, weight: .bold))
@@ -335,7 +363,7 @@ public struct SpeciesDetailView: View {
                         .cornerRadius(16)
                     }
 
-                    Button(action: { activeTab = "micro" }) {
+                    Button(action: { router.openMicro() }) {
                         HStack(spacing: 8) {
                             Image(systemName: "scope")
                                 .font(.system(size: 15, weight: .bold))
@@ -352,85 +380,42 @@ public struct SpeciesDetailView: View {
                                 .stroke(Color.biolumMint.opacity(0.4), lineWidth: 1)
                         )
                     }
+
+                    Button(action: { router.openQuiz(for: currentSpecies.id) }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 15, weight: .bold))
+                            Text("趣味挑战")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .foregroundColor(Color.goldLight)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                        .background(Color.amberGold.opacity(0.16))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.amberGold.opacity(0.45), lineWidth: 1)
+                        )
+                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 24)
             }
         }
-        .onChange(of: selectedSpeciesId) { _ in
+        .onAppear {
+            preloadSpeciesAudio()
+        }
+        .onChange(of: router.selectedSpeciesId) { _, _ in
             selectedSubTab = 0
+            preloadSpeciesAudio()
         }
     }
-}
 
-private struct BentoCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let desc: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(Color.biolumMint)
-                    .font(.system(size: 14))
-                Spacer()
-                Text(title)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color.textMuted)
-            }
-
-            Text(value)
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(Color.textLight)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Text(desc)
-                .font(.system(size: 10))
-                .foregroundColor(Color.textMuted.opacity(0.8))
-                .lineLimit(2)
-        }
-        .padding(14)
-        .background(Color.darkEmeraldCard)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.darkEmeraldBorder, lineWidth: 1)
-        )
-    }
-}
-
-private struct SubInfoPanel: View {
-    let title: String
-    let cards: [(icon: String, title: String, value: String, desc: String)]
-    let summary: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(Color.textLight)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                ForEach(0..<cards.count, id: \.self) { idx in
-                    BentoCard(icon: cards[idx].icon, title: cards[idx].title, value: cards[idx].value, desc: cards[idx].desc)
-                }
-            }
-
-            Text(summary)
-                .font(.system(size: 13))
-                .foregroundColor(Color.textMuted)
-                .lineSpacing(5)
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.darkEmeraldCard)
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.darkEmeraldBorder, lineWidth: 1)
-                )
-        }
+    private func preloadSpeciesAudio() {
+        audioService.preload(remotePaths: [
+            AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .zh),
+            AudioPathBuilder.speciesOverview(speciesId: currentSpecies.id, lang: .en)
+        ])
     }
 }

@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
 import os
 import hashlib
-import json
 
 def gen_id(name: str) -> str:
     return hashlib.md5(name.encode('utf-8')).hexdigest()[:24].upper()
 
 project_dir = os.path.dirname(os.path.abspath(__file__))
 sources_dir = os.path.join(project_dir, "Sources/StillFantasyiPad")
+development_team = os.environ.get("STILLFANTASY_DEVELOPMENT_TEAM", "2M24UZ8ZRQ")
 
-# Find all swift files
+# Find all swift files and bundled json data files
 swift_files = []
+json_files = []
 for root, dirs, files in os.walk(sources_dir):
+    dirs[:] = sorted(dirs)
     for f in sorted(files):
+        full_path = os.path.join(root, f)
+        rel_path = os.path.relpath(full_path, project_dir).replace(os.sep, "/")
         if f.endswith(".swift"):
-            full_path = os.path.join(root, f)
-            rel_path = os.path.relpath(full_path, project_dir)
             swift_files.append((f, rel_path))
+        elif f.endswith(".json"):
+            json_files.append((f, rel_path))
 
-print(f"Found {len(swift_files)} swift files:")
+print(f"Found {len(swift_files)} swift files and {len(json_files)} json data files:")
 for f, r in swift_files:
     print(f"  - {f} ({r})")
+for f, r in json_files:
+    print(f"  - [data] {f} ({r})")
 
 # IDs
 proj_id = gen_id("PROJECT_ROOT")
@@ -47,22 +53,33 @@ target_release_cfg_id = gen_id("CFG_TARGET_RELEASE")
 pbx_build_files = []
 pbx_file_refs = []
 sources_build_file_ids = []
+resources_build_file_ids = []
 sources_group_children = []
 
 for fname, rel_path in swift_files:
     file_ref_id = gen_id("FILEREF_" + rel_path)
     build_file_id = gen_id("BUILDFILE_" + rel_path)
-    
+
     pbx_build_files.append(f'\t\t{build_file_id} /* {fname} in Sources */ = {{isa = PBXBuildFile; fileRef = {file_ref_id} /* {fname} */; }};')
     pbx_file_refs.append(f'\t\t{file_ref_id} /* {fname} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "{rel_path}"; sourceTree = "<group>"; }};')
     sources_build_file_ids.append(f'\t\t\t\t{build_file_id} /* {fname} in Sources */,')
     sources_group_children.append(f'\t\t\t\t{file_ref_id} /* {fname} */,')
 
-# Resources ref
+for fname, rel_path in json_files:
+    file_ref_id = gen_id("FILEREF_" + rel_path)
+    build_file_id = gen_id("BUILDFILE_" + rel_path)
+
+    pbx_build_files.append(f'\t\t{build_file_id} /* {fname} in Resources */ = {{isa = PBXBuildFile; fileRef = {file_ref_id} /* {fname} */; }};')
+    pbx_file_refs.append(f'\t\t{file_ref_id} /* {fname} */ = {{isa = PBXFileReference; lastKnownFileType = text.json; path = "{rel_path}"; sourceTree = "<group>"; }};')
+    resources_build_file_ids.append(f'\t\t\t\t{build_file_id} /* {fname} in Resources */,')
+    sources_group_children.append(f'\t\t\t\t{file_ref_id} /* {fname} */,')
+
+# Resources folder ref
 resources_ref_id = gen_id("FILEREF_Resources")
 resources_build_id = gen_id("BUILDFILE_Resources")
 pbx_file_refs.append(f'\t\t{resources_ref_id} /* Resources */ = {{isa = PBXFileReference; lastKnownFileType = folder; path = "Resources"; sourceTree = "<group>"; }};')
 pbx_build_files.append(f'\t\t{resources_build_id} /* Resources in Resources */ = {{isa = PBXBuildFile; fileRef = {resources_ref_id} /* Resources */; }};')
+resources_build_file_ids.append(f'\t\t\t\t{resources_build_id} /* Resources in Resources */,')
 
 # Product ref
 pbx_file_refs.append(f'\t\t{app_product_id} /* StillFantasyiPad.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "StillFantasyiPad.app"; sourceTree = BUILT_PRODUCTS_DIR; }};')
@@ -70,6 +87,7 @@ pbx_file_refs.append(f'\t\t{app_product_id} /* StillFantasyiPad.app */ = {{isa =
 build_files_str = "\n".join(pbx_build_files)
 file_refs_str = "\n".join(pbx_file_refs)
 sources_phase_entries = "\n".join(sources_build_file_ids)
+resources_phase_entries = "\n".join(resources_build_file_ids)
 sources_children_entries = "\n".join(sources_group_children)
 
 project_pbxproj = f"""// !$*UTF8*$!
@@ -182,7 +200,7 @@ project_pbxproj = f"""// !$*UTF8*$!
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				{resources_build_id} /* Resources in Resources */,
+{resources_phase_entries}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		}};
@@ -269,6 +287,7 @@ project_pbxproj = f"""// !$*UTF8*$!
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = {development_team};
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
@@ -297,6 +316,7 @@ project_pbxproj = f"""// !$*UTF8*$!
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = {development_team};
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Still Fantasy";
